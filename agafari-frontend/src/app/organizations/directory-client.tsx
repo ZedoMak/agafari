@@ -55,9 +55,9 @@ export function DirectoryClient({
   if (unavailable) {
     return (
       <div className="error-panel" role="alert">
-        <h2>Organizations could not be loaded</h2>
+        <h2>Live demos could not be loaded</h2>
         <p>
-          The directory is temporarily unavailable. Check that the Agafari API
+          Demo previews are temporarily unavailable. Check that the Agafari API
           is running, then try again.
         </p>
         <button
@@ -82,14 +82,14 @@ export function DirectoryClient({
               setQuery(event.target.value);
               updateUrl(event.target.value, sector);
             }}
-            placeholder="Search organizations or sectors"
-            aria-label="Search organizations"
+            placeholder="Search demos or sectors"
+            aria-label="Search live demos"
           />
         </label>
         <select
           className="filter-select"
           value={sector}
-          aria-label="Filter by sector"
+          aria-label="Filter demos by sector"
           onChange={(event) => {
             setSector(event.target.value);
             updateUrl(query, event.target.value);
@@ -104,7 +104,8 @@ export function DirectoryClient({
       </div>
 
       <p className="result-count" aria-live="polite">
-        {filtered.length} {filtered.length === 1 ? "organization" : "organizations"}
+        {filtered.length}{" "}
+        {filtered.length === 1 ? "live demo" : "live demos"}
       </p>
 
       {filtered.length ? (
@@ -118,7 +119,7 @@ export function DirectoryClient({
         </div>
       ) : (
         <div className="empty-panel">
-          <h2>No matching organization</h2>
+          <h2>No matching demo</h2>
           <p>Try a different name, keyword, or sector.</p>
           <button
             className="button button-secondary"

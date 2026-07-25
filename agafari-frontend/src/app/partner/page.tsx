@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { PartnerForm } from "./partner-form";
 
 export const metadata: Metadata = {
-  title: "Partner with Agafari",
+  title: "Subscribe",
   description:
-    "Request a pilot for a hosted public knowledge assistant, private employee RAG, and customer insight dashboard.",
+    "Subscribe to an Agafari template. We ship a dedicated website with RAG and a dashboard. You customize, deploy, and serve your customers.",
 };
 
 export default function PartnerPage() {
@@ -15,21 +17,31 @@ export default function PartnerPage() {
       <main className="partner-page">
         <div className="container partner-grid">
           <section className="partner-copy">
-            <span className="eyebrow">Request a pilot</span>
-            <h1>Turn repeated questions into clear answers and action.</h1>
+            <span className="eyebrow">Get started</span>
+            <h1>Start building your AI website</h1>
             <p>
-              Agafari gives your organization a hosted public information
-              experience, a private employee knowledge assistant, and a
-              structured view of the questions and feedback that matter.
+              Choose a template. We host the stack—website, RAG, and dashboard.
+              You customize branding and knowledge, then serve your visitors on
+              your dedicated site.
             </p>
             <ul className="feature-list">
-              <li>A branded organization page and public assistant</li>
-              <li>Private RAG for employees and approved documents</li>
-              <li>Complaint, knowledge-gap, and interaction insights</li>
-              <li>A reusable hosted template—no separate platform to maintain</li>
+              <li>Dedicated hosted company website</li>
+              <li>Public + private RAG included</li>
+              <li>Dashboard to manage services and documents</li>
+              <li>You own customer service on your site</li>
             </ul>
+            <p>
+              Not ready?{" "}
+              <Link href="/templates">Compare templates</Link> or{" "}
+              <Link href="/organizations/hope-aid">
+                preview the Clarity demo
+              </Link>
+              .
+            </p>
           </section>
-          <PartnerForm />
+          <Suspense fallback={<div className="partner-form form-body">Loading…</div>}>
+            <PartnerForm />
+          </Suspense>
         </div>
       </main>
       <SiteFooter />

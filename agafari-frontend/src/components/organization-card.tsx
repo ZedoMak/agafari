@@ -42,14 +42,17 @@ export function OrganizationCard({
       </div>
       <div>
         <h2>{organization.name}</h2>
-        <p>{organization.description ?? "Verified organization information."}</p>
+        <p>
+          {organization.description ??
+            "Live template demo — preview a company knowledge site."}
+        </p>
       </div>
       <Link
         href={`/organizations/${organization.slug}`}
         className="card-link"
-        aria-label={`View ${organization.name}`}
+        aria-label={`Open ${organization.name} live demo`}
       >
-        View {organization.terminology.service_plural.toLowerCase()}
+        Open live demo
         <span aria-hidden="true">→</span>
       </Link>
     </article>

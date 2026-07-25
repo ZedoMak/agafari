@@ -12,15 +12,15 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   ),
   title: {
-    default: "Agafari — Knowledge people can act on",
+    default: "Agafari — Launch AI-powered organization websites",
     template: "%s · Agafari",
   },
   description:
-    "Explore verified organization services, ask grounded questions, and share feedback that reaches the right team.",
+    "Choose a template, customize branding, upload your knowledge base, and launch a public website with dashboard and RAG assistant in minutes.",
   openGraph: {
-    title: "Agafari — Knowledge people can act on",
+    title: "Agafari — Launch AI-powered organization websites",
     description:
-      "Clear answers for people. Better insight for organizations.",
+      "Shopify for AI organizational websites—templates, dashboard, and RAG included.",
     type: "website",
   },
 };

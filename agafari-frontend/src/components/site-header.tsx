@@ -21,16 +21,18 @@ export function SiteHeader() {
           <AgafariMark />
         </Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/organizations">Organizations</Link>
-          <Link href="/#how-it-works">How it works</Link>
-          <Link href="/#for-organizations">For organizations</Link>
+          <Link href="/#features">Features</Link>
+          <Link href="/#templates">Templates</Link>
+          <Link href="/#pricing">Pricing</Link>
+          <Link href="/docs">Docs</Link>
+          <Link href="/about">About</Link>
         </nav>
         <div className="nav-actions">
           <Link href="/partner" className="button button-ghost nav-partner">
-            Partner with us
+            Log in
           </Link>
-          <Link href="/organizations" className="button button-primary">
-            Explore organizations
+          <Link href="/partner" className="button button-primary">
+            Get started
           </Link>
         </div>
         <details className="mobile-menu">
@@ -40,10 +42,13 @@ export function SiteHeader() {
             <span />
           </summary>
           <nav aria-label="Mobile navigation">
-            <Link href="/organizations">Organizations</Link>
-            <Link href="/#how-it-works">How it works</Link>
-            <Link href="/#for-organizations">For organizations</Link>
-            <Link href="/partner">Partner with us</Link>
+            <Link href="/#features">Features</Link>
+            <Link href="/#templates">Templates</Link>
+            <Link href="/#pricing">Pricing</Link>
+            <Link href="/docs">Docs</Link>
+            <Link href="/about">About</Link>
+            <Link href="/partner">Log in</Link>
+            <Link href="/partner">Get started</Link>
           </nav>
         </details>
       </div>
@@ -53,30 +58,48 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="site-footer">
-      <div className="container footer-grid">
+    <footer className="site-footer site-footer-saas">
+      <div className="container footer-grid footer-grid-saas">
         <div className="footer-brand">
           <AgafariMark />
           <p>
-            Clear answers for people. Better insight for organizations.
+            Shopify for AI-powered organizational websites—templates, dashboard,
+            and RAG in one product.
           </p>
         </div>
-        <div className="footer-links">
+        <div className="footer-links footer-links-saas">
           <div>
-            <h3>Explore</h3>
-            <Link href="/organizations">Organizations</Link>
-            <Link href="/#how-it-works">How it works</Link>
+            <h3>Product</h3>
+            <Link href="/#features">Features</Link>
+            <Link href="/#templates">Templates</Link>
+            <Link href="/#pricing">Pricing</Link>
+            <Link href="/#demo">Demo</Link>
           </div>
           <div>
-            <h3>For organizations</h3>
-            <Link href="/partner">Request a pilot</Link>
-            <Link href="/#trust">Trust and safety</Link>
+            <h3>Resources</h3>
+            <Link href="/docs">Docs</Link>
+            <Link href="/templates">Template gallery</Link>
+            <Link href="/organizations">Live demos</Link>
+          </div>
+          <div>
+            <h3>Company</h3>
+            <Link href="/about">About</Link>
+            <Link href="/partner">Contact</Link>
+          </div>
+          <div>
+            <h3>Legal</h3>
+            <Link href="/about#privacy">Privacy</Link>
+            <Link href="/about#terms">Terms</Link>
           </div>
         </div>
       </div>
       <div className="container footer-bottom">
         <span>© {new Date().getFullYear()} Agafari</span>
-        <span>Knowledge people can act on.</span>
+        <div className="footer-socials" aria-label="Social">
+          <span>X</span>
+          <span>LinkedIn</span>
+          <span>GitHub</span>
+        </div>
       </div>
     </footer>
   );

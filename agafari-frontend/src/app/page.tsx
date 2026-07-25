@@ -1,463 +1,345 @@
 import Link from "next/link";
-import { getOrganizations } from "@/lib/api";
-import type { Organization } from "@/lib/types";
-import { OrganizationAvatar } from "@/components/organization-card";
+import { HeroStack } from "@/components/landing/hero-stack";
+import { ProductDemo } from "@/components/landing/product-demo";
+import { TemplatePreview } from "@/components/landing/template-preview";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
-
-async function getFeaturedOrganization(): Promise<Organization | null> {
-  try {
-    const organizations = await getOrganizations();
-    return (
-      organizations.find((organization) => organization.slug === "hope-aid") ??
-      organizations[0] ??
-      null
-    );
-  } catch {
-    return null;
-  }
-}
-
-const sectors = [
-  "NGOs",
-  "Education",
-  "Finance",
-  "Healthcare",
-  "Telecom",
-  "Public services",
-];
+import { TEMPLATE_CATALOG } from "@/lib/templates-catalog";
 
 const steps = [
   {
     number: "01",
-    title: "Connect approved knowledge",
+    title: "Choose a template",
     description:
-      "Upload service guides, policies, FAQs, and internal documents. Public and private material stay separated.",
+      "Pick a professional starting point built for education, healthcare, government, NGOs, and more.",
   },
   {
     number: "02",
-    title: "Ask in natural language",
+    title: "Customize branding",
     description:
-      "People and employees ask ordinary questions instead of searching through pages and PDFs.",
+      "Add your logo, colors, fonts, and homepage content—no engineering sprint required.",
   },
   {
     number: "03",
-    title: "Answer with evidence",
+    title: "Upload documents",
     description:
-      "Agafari retrieves the relevant approved source and returns a concise answer with citations.",
+      "Connect your knowledge base. Approve what the AI can use publicly vs internally.",
   },
   {
     number: "04",
-    title: "Turn demand into insight",
+    title: "Launch your AI website",
     description:
-      "Repeated questions, knowledge gaps, and complaints become structured signals the organization can act on.",
+      "Go live with a public site, dashboard, and RAG assistant on a dedicated hosted site.",
   },
 ];
 
-const capabilities = [
+const outcomes = [
   {
-    title: "Grounded answers",
-    description:
-      "Responses are generated from approved organization knowledge, with sources attached.",
+    title: "Professional website",
+    description: "A beautiful, responsive public site for your services and programs.",
   },
   {
-    title: "Hosted organization pages",
-    description:
-      "Each partner gets a configurable public experience without maintaining another product.",
+    title: "AI assistant",
+    description: "RAG-powered chat trained on the documents you approve.",
   },
   {
-    title: "Private employee RAG",
-    description:
-      "Staff can find internal policies and procedures without exposing them to public visitors.",
+    title: "Powerful dashboard",
+    description: "Manage services, documents, branding, and AI from one workspace.",
   },
   {
-    title: "Complaint intelligence",
-    description:
-      "Structured feedback reveals patterns instead of leaving every case isolated.",
+    title: "Custom branding",
+    description: "Logo, colors, terminology, and layout that match your organization.",
   },
   {
-    title: "Knowledge-gap detection",
-    description:
-      "Unanswered questions show teams exactly what information is missing or unclear.",
+    title: "Knowledge base",
+    description: "Upload PDFs, guides, and policies—control public vs internal visibility.",
   },
   {
-    title: "Human control",
-    description:
-      "Organizations decide what is public, internal, approved, replaced, or archived.",
+    title: "Analytics",
+    description: "See questions, gaps, and engagement so your team knows what to improve.",
   },
 ];
 
-const useCases = [
-  [
-    "NGO",
-    "Programs and beneficiaries",
-    "Explain eligibility, application steps, distribution timelines, and grievance channels.",
-  ],
-  [
-    "Education",
-    "Students and administration",
-    "Answer admissions, payment, registration, scheduling, and certification questions.",
-  ],
-  [
-    "Financial services",
-    "Customers and operations",
-    "Clarify onboarding, account access, fees, KYC, and complaint escalation.",
-  ],
-  [
-    "Healthcare",
-    "Patients and care teams",
-    "Make appointments, service preparation, billing, and facility guidance easier to find.",
-  ],
-  [
-    "Telecom",
-    "Subscribers and support",
-    "Deflect repeated plan, billing, SIM, network, and account-access questions.",
-  ],
-  [
-    "Public services",
-    "Residents and agencies",
-    "Present verified procedures, requirements, offices, and policy updates clearly.",
-  ],
+const customizeItems = [
+  "Change colors",
+  "Upload logo",
+  "Choose fonts",
+  "Edit homepage",
+  "Add pages",
+  "Configure AI assistant",
+  "Manage services",
+  "No coding required",
 ];
 
-export default async function Home() {
-  const featured = await getFeaturedOrganization();
+const trustOrgs = [
+  "Government Agencies",
+  "Universities",
+  "Hospitals",
+  "NGOs",
+  "Municipalities",
+  "Companies",
+];
 
+export default function Home() {
   return (
     <>
       <SiteHeader />
-      <main>
+      <main className="landing-page">
         <section className="hero">
           <div className="container hero-grid">
-            <div className="hero-copy">
-              <span className="eyebrow">Verified organization knowledge</span>
+            <div className="hero-copy reveal-up">
+              <span className="eyebrow">AI digital service websites</span>
               <h1>
-                Find the answer. <em>Know it&apos;s real.</em>
+                Launch your AI-powered organization website{" "}
+                <em>in minutes</em>
               </h1>
               <p>
-                Agafari brings an organization&apos;s services, policies, and
-                guidance into one clear place—so people get useful answers and
-                organizations learn where support is breaking down.
+                Choose a professional template, customize branding, upload your
+                knowledge base, and go live with a public site, admin dashboard,
+                and RAG assistant—Shopify-simple for organizational websites.
               </p>
               <div className="hero-actions">
-                <Link href="/organizations" className="button button-primary">
-                  Explore organizations <span aria-hidden="true">→</span>
+                <Link href="/partner" className="button button-primary">
+                  Start building <span aria-hidden="true">→</span>
                 </Link>
-                <Link href="/partner" className="button button-secondary">
-                  Bring Agafari to your organization
+                <Link href="#templates" className="button button-secondary">
+                  View templates
                 </Link>
               </div>
               <div className="hero-note">
                 <span aria-hidden="true" />
-                Answers grounded in organization-approved sources
+                Template · Dashboard · AI included
               </div>
             </div>
-
-            <div className="product-preview" aria-label="Agafari answer preview">
-              <div className="preview-window">
-                <div className="preview-toolbar">
-                  <div className="preview-org">
-                    <span className="mini-logo">HA</span>
-                    Hope Aid Ethiopia
-                  </div>
-                  <span className="preview-status">
-                    <i aria-hidden="true" /> Knowledge verified
-                  </span>
-                </div>
-                <div className="preview-content">
-                  <span>Community Livelihood Grant</span>
-                  <h3>Ask a question about this program</h3>
-                  <div className="preview-question">
-                    What documents do we need, and how long does review take?
-                  </div>
-                  <div className="preview-answer">
-                    You&apos;ll need a community recognition letter, a simple
-                    project plan, and a budget. Applications are normally
-                    reviewed within 20 working days.
-                    <div className="preview-citation">
-                      <b aria-hidden="true">↗</b>
-                      Community Grant Public Guide
-                    </div>
-                  </div>
-                  <div className="preview-input">
-                    <span>Ask a follow-up question…</span>
-                    <span aria-hidden="true">↑</span>
-                  </div>
-                </div>
-              </div>
-              <div className="floating-proof">
-                <span className="proof-icon" aria-hidden="true">
-                  ✓
-                </span>
-                <div>
-                  <strong>Source-backed answer</strong>
-                  <span>No guesswork or generic advice</span>
-                </div>
-              </div>
-            </div>
+            <HeroStack />
           </div>
         </section>
 
-        <section className="sector-strip" aria-label="Supported sectors">
-          <div className="container sector-strip-inner">
-            <p>Built for organizations across sectors</p>
-            <div className="sector-list">
-              {sectors.map((sector) => (
-                <span key={sector}>{sector}</span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
+        <section className="section section-soft" id="templates">
           <div className="container">
             <div className="section-head">
               <div>
-                <span className="eyebrow">The information problem</span>
-                <h2>Simple questions should not become long journeys.</h2>
+                <span className="eyebrow">Template showcase</span>
+                <h2>Pick a site. Make it yours.</h2>
               </div>
               <p>
-                Important information is often scattered across websites,
-                documents, support lines, and people&apos;s memories. Everyone
-                pays the cost.
+                Browse professionally designed templates—then preview or start
+                building. This is the product.
               </p>
             </div>
-            <div className="problem-grid">
-              <article className="problem-item">
-                <span className="problem-number">01</span>
-                <h3>People cannot find a clear answer</h3>
-                <p>
-                  They search multiple pages, make repeated calls, or travel in
-                  person just to understand a requirement or process.
-                </p>
-              </article>
-              <article className="problem-item">
-                <span className="problem-number">02</span>
-                <h3>Support teams repeat the same work</h3>
-                <p>
-                  Call centers and staff answer identical questions every day
-                  without turning that demand into better self-service.
-                </p>
-              </article>
-              <article className="problem-item">
-                <span className="problem-number">03</span>
-                <h3>Real feedback gets buried</h3>
-                <p>
-                  Complaints arrive as isolated messages. Patterns stay hidden,
-                  and leaders do not see what should be fixed first.
-                </p>
-              </article>
+            <div className="template-showcase">
+              {TEMPLATE_CATALOG.map((template) => (
+                <article className="showcase-card" key={template.id} id={template.id}>
+                  <TemplatePreview template={template} />
+                  <div className="showcase-card-body">
+                    <div className="showcase-card-meta">
+                      <span className="sector-badge">{template.category}</span>
+                      {template.live ? (
+                        <span className="live-pill">Live demo</span>
+                      ) : null}
+                    </div>
+                    <h3>{template.name}</h3>
+                    <p>{template.description}</p>
+                    <div className="template-card-actions">
+                      <Link
+                        href={template.previewHref}
+                        className="button button-secondary button-small"
+                      >
+                        Preview
+                      </Link>
+                      <Link
+                        href={template.useHref}
+                        className="button button-primary button-small"
+                      >
+                        Use template
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
-          </div>
-        </section>
-
-        <section className="section section-soft" id="for-organizations">
-          <div className="container">
-            <div className="centered-head">
-              <span className="eyebrow">One platform, two outcomes</span>
-              <h2>Useful in public. Powerful behind the scenes.</h2>
-              <p>
-                People get a free, trustworthy place to ask. Organizations get
-                a hosted knowledge system that helps them answer, learn, and
-                improve.
-              </p>
-            </div>
-            <div className="audience-grid">
-              <article className="audience-panel people">
-                <span className="audience-label">For people</span>
-                <h3>A clearer way to understand any service.</h3>
-                <p>
-                  Browse an organization, choose a service, and ask in your own
-                  words. Every useful answer stays connected to its source.
-                </p>
-                <ul className="feature-list">
-                  <li>Verified service information</li>
-                  <li>Grounded AI answers with citations</li>
-                  <li>Direct complaint and feedback submission</li>
-                </ul>
-              </article>
-              <article className="audience-panel organizations">
-                <span className="audience-label">For organizations</span>
-                <h3>Your knowledge, support, and insight layer.</h3>
-                <p>
-                  Launch a branded public assistant and private employee RAG
-                  without building a new platform from scratch.
-                </p>
-                <ul className="feature-list">
-                  <li>Public and private knowledge spaces</li>
-                  <li>Document approval and interaction logs</li>
-                  <li>Repeated-question and complaint insights</li>
-                </ul>
-              </article>
-            </div>
+            <p className="template-gallery-foot">
+              <Link href="/templates">Open full template gallery →</Link>
+            </p>
           </div>
         </section>
 
         <section className="section" id="how-it-works">
-          <div className="container steps-grid">
-            <div className="steps-intro">
-              <span className="eyebrow">How Agafari works</span>
-              <h2>Knowledge in. Clarity out.</h2>
-              <p>
-                The organization controls what becomes trusted knowledge.
-                Agafari handles the work of preparing it for useful,
-                traceable answers.
-              </p>
-              <Link href="/partner" className="button button-secondary">
-                See it for your organization
-              </Link>
-            </div>
-            <div className="steps">
-              {steps.map((step) => (
-                <article className="step" key={step.number}>
-                  <span className="step-number">{step.number}</span>
-                  <div>
-                    <h3>{step.title}</h3>
-                    <p>{step.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section section-soft">
-          <div className="container">
-            <div className="section-head">
-              <div>
-                <span className="eyebrow">Live pilot</span>
-                <h2>Experience the public side of Agafari.</h2>
-              </div>
-              <p>
-                Hope Aid is a fictional NGO pilot using real Agafari flows and
-                synthetic demonstration data.
-              </p>
-            </div>
-            <div className="featured-demo">
-              <div className="featured-copy">
-                <span className="sector-badge">
-                  {featured?.sector ?? "NGO"} · Demo organization
-                </span>
-                <h3>{featured?.name ?? "Hope Aid Ethiopia"}</h3>
-                <p>
-                  {featured?.description ??
-                    "Explore a complete example of an organization profile, service catalog, public assistant, and complaint flow."}
-                </p>
-                <Link
-                  href={`/organizations/${featured?.slug ?? "hope-aid"}`}
-                  className="button button-brand"
-                >
-                  Explore the live demo <span aria-hidden="true">→</span>
-                </Link>
-              </div>
-              <div className="featured-visual">
-                <div className="demo-card-mini">
-                  <div className="demo-card-head">
-                    {featured ? (
-                      <OrganizationAvatar organization={featured} size="small" />
-                    ) : (
-                      <span className="org-avatar org-avatar-small org-avatar-fallback">
-                        HA
-                      </span>
-                    )}
-                    <div>
-                      <strong>{featured?.name ?? "Hope Aid Ethiopia"}</strong>
-                      <span>Verified organization profile</span>
-                    </div>
-                  </div>
-                  {[
-                    "Community Livelihood Grant",
-                    "Ask the public assistant",
-                    "Submit feedback",
-                  ].map((label) => (
-                    <div className="demo-service-line" key={label}>
-                      <span>{label}</span>
-                      <b>→</b>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="section section-dark">
-          <div className="container">
-            <div className="section-head">
-              <div>
-                <span className="eyebrow">What the platform delivers</span>
-                <h2>More than a chatbot.</h2>
-              </div>
-              <p style={{ color: "#b3c2bc" }}>
-                A complete knowledge and feedback loop designed around
-                traceability, control, and action.
-              </p>
-            </div>
-            <div className="capability-grid">
-              {capabilities.map((capability, index) => (
-                <article className="capability" key={capability.title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <h3>{capability.title}</h3>
-                  <p>{capability.description}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section">
           <div className="container">
             <div className="centered-head">
-              <span className="eyebrow">Not limited to one sector</span>
-              <h2>The same information problem appears everywhere.</h2>
+              <span className="eyebrow">How it works</span>
+              <h2>From template to live AI website</h2>
+              <p>
+                Four clear steps. No custom platform build. No separate AI
+                project.
+              </p>
             </div>
-            <div className="sector-use-grid">
-              {useCases.map(([sector, title, description]) => (
-                <article className="sector-use" key={sector}>
-                  <small>{sector}</small>
-                  <h3>{title}</h3>
-                  <p>{description}</p>
+            <ol className="process-track">
+              {steps.map((step, index) => (
+                <li className="process-step" key={step.number}>
+                  <span className="process-number">{step.number}</span>
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                  {index < steps.length - 1 ? (
+                    <span className="process-arrow" aria-hidden="true">
+                      ↓
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        <section className="section section-soft" id="features">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <span className="eyebrow">What you get</span>
+                <h2>Outcomes, not checkbox features</h2>
+              </div>
+              <p>
+                Everything ships with your template so your organization can
+                publish services and answer questions with confidence.
+              </p>
+            </div>
+            <div className="outcome-grid">
+              {outcomes.map((item) => (
+                <article className="outcome-card" key={item.title}>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="section" id="demo">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <span className="eyebrow">Interactive demo</span>
+                <h2>See the product, not a pitch deck</h2>
+              </div>
+              <p>
+                Switch between website, dashboard, AI, and templates. Hover and
+                click—this is what you launch.
+              </p>
+            </div>
+            <ProductDemo />
+          </div>
+        </section>
+
+        <section className="section section-soft" id="why">
+          <div className="container">
+            <div className="centered-head">
+              <span className="eyebrow">Why Agafari</span>
+              <h2>Stop rebuilding what should be a product</h2>
+            </div>
+            <div className="compare-grid">
+              <article className="compare-card compare-old">
+                <h3>Traditional development</h3>
+                <ul>
+                  <li>
+                    <span aria-hidden="true">✕</span> Months of build time
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✕</span> Expensive custom work
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✕</span> Developers required
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✕</span> AI bolted on separately
+                  </li>
+                </ul>
+              </article>
+              <article className="compare-card compare-new">
+                <h3>Agafari</h3>
+                <ul>
+                  <li>
+                    <span aria-hidden="true">✓</span> Minutes to start
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span> Ready-made templates
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span> AI included
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span> Dashboard included
+                  </li>
+                  <li>
+                    <span aria-hidden="true">✓</span> Fully customizable
+                  </li>
+                </ul>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="customize">
+          <div className="container customize-layout">
+            <div>
+              <span className="eyebrow">Customization</span>
+              <h2>Your brand. Your knowledge. Your site.</h2>
+              <p>
+                Every generated site is yours to shape. Update look and feel,
+                structure pages, and configure the assistant—without writing
+                code.
+              </p>
+              <Link href="/partner" className="button button-primary">
+                Start building
+              </Link>
+            </div>
+            <ul className="customize-grid">
+              {customizeItems.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
         </section>
 
         <section className="section section-soft" id="trust">
-          <div className="container trust-layout">
-            <div>
-              <span className="eyebrow">Trust by design</span>
-              <h2>Clear about what the AI knows—and what it does not.</h2>
+          <div className="container">
+            <div className="centered-head">
+              <span className="eyebrow">Built for organizations</span>
+              <h2>Trusted across sectors</h2>
               <p>
-                Agafari is designed for useful restraint. It grounds answers in
-                approved material, shows sources, and admits when verified
-                information is missing.
+                Designed for teams that need clear public information and an AI
+                layer they control.
               </p>
             </div>
-            <div className="trust-items">
-              <div className="trust-item">
-                <strong>Approved sources</strong>
-                <span>
-                  Organizations control which documents can answer questions.
-                </span>
-              </div>
-              <div className="trust-item">
-                <strong>Visible citations</strong>
-                <span>
-                  People can see where an answer came from and verify it.
-                </span>
-              </div>
-              <div className="trust-item">
-                <strong>Honest uncertainty</strong>
-                <span>
-                  Low-confidence and unanswered states are shown clearly.
-                </span>
-              </div>
-              <div className="trust-item">
-                <strong>Separated knowledge</strong>
-                <span>
-                  Public and internal sources are isolated at retrieval.
-                </span>
-              </div>
+            <div className="trust-logo-row" aria-label="Organization types">
+              {trustOrgs.map((org) => (
+                <div className="trust-logo" key={org}>
+                  {org}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section" id="pricing">
+          <div className="container pricing-strip">
+            <div>
+              <span className="eyebrow">Pricing</span>
+              <h2>Start building. Subscribe when you launch.</h2>
+              <p>
+                Explore templates and demos free. When you&apos;re ready, subscribe
+                to host your organization&apos;s AI website.
+              </p>
+            </div>
+            <div className="pricing-card">
+              <strong>Organization plan</strong>
+              <ul className="feature-list">
+                <li>Hosted public website</li>
+                <li>Admin dashboard</li>
+                <li>RAG AI assistant</li>
+                <li>Template + branding controls</li>
+              </ul>
+              <Link href="/partner" className="button button-primary">
+                Get started
+              </Link>
             </div>
           </div>
         </section>
@@ -466,20 +348,17 @@ export default async function Home() {
           <div className="container">
             <div className="cta-panel">
               <div>
-                <h2>Make your organization easier to understand.</h2>
+                <h2>Create your AI website today</h2>
                 <p>
-                  Give people clearer answers, give employees faster access to
-                  knowledge, and give your team insight into what needs fixing.
+                  Choose a template, customize it, and launch a digital service
+                  portal your organization can run.
                 </p>
                 <div className="cta-actions">
-                  <Link
-                    href="/organizations/hope-aid"
-                    className="button button-primary"
-                  >
-                    Explore the demo
+                  <Link href="/partner" className="button button-primary">
+                    Start building
                   </Link>
-                  <Link href="/partner" className="button button-secondary">
-                    Request a pilot
+                  <Link href="#templates" className="button button-secondary">
+                    Browse templates
                   </Link>
                 </div>
               </div>

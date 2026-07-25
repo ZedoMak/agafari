@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ComplaintButton } from "@/components/complaint-dialog";
 import {
@@ -22,13 +23,13 @@ export async function generateMetadata({
     const { slug } = await params;
     const organization = await getOrganization(slug);
     return {
-      title: organization.name,
+      title: `${organization.name} · Live demo`,
       description:
         organization.description ??
-        `Explore verified information and services from ${organization.name}.`,
+        `Live template demo of a company knowledge site for ${organization.name}.`,
     };
   } catch {
-    return { title: "Organization" };
+    return { title: "Live demo" };
   }
 }
 
@@ -54,6 +55,15 @@ export default async function OrganizationPage({ params }: PageProps) {
     <div style={themeStyle}>
       <SiteHeader />
       <main>
+        <div className="demo-banner">
+          <div className="container demo-banner-inner">
+            <span>
+              Template demo — example of a company site after subscribe +
+              customize. Customers would use this site, not Agafari.
+            </span>
+            <Link href="/templates">See templates</Link>
+          </div>
+        </div>
         <section className="organization-hero">
           <div className="container org-hero-grid">
             <div className="org-identity">
@@ -63,7 +73,7 @@ export default async function OrganizationPage({ params }: PageProps) {
                 <h1>{organization.name}</h1>
                 <p>
                   {organization.description ??
-                    "Explore verified organization information and services."}
+                    "Explore this company-site demo: services, public AI, and feedback."}
                 </p>
               </div>
             </div>
@@ -116,8 +126,8 @@ export default async function OrganizationPage({ params }: PageProps) {
               <div className="empty-panel">
                 <h2>No public {terminology.service_plural.toLowerCase()} yet</h2>
                 <p>
-                  {organization.name} has not published service information on
-                  Agafari.
+                  This demo has not published {terminology.service_plural.toLowerCase()}{" "}
+                  yet.
                 </p>
               </div>
             )}

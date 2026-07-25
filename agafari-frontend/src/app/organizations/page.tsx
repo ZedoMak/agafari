@@ -5,9 +5,9 @@ import type { Organization } from "@/lib/types";
 import { DirectoryClient } from "./directory-client";
 
 export const metadata: Metadata = {
-  title: "Organizations",
+  title: "Template demos",
   description:
-    "Browse organizations, understand their services, and ask questions grounded in verified information.",
+    "Preview example company sites built from Agafari templates. Demos only—Agafari sells templates, not customer support.",
 };
 
 export const dynamic = "force-dynamic";
@@ -27,12 +27,12 @@ export default async function OrganizationsPage() {
       <main>
         <section className="page-hero">
           <div className="container">
-            <span className="eyebrow">Organization directory</span>
-            <h1>Find the organization. Get the clear answer.</h1>
+            <span className="eyebrow">Template demos</span>
+            <h1>See a deployed template.</h1>
             <p>
-              Browse verified organization pages, explore their services, and
-              ask grounded questions without searching across scattered
-              sources.
+              Example company sites after someone chose a template and
+              customized it. Your customers would use a site like this—on your
+              domain, not on Agafari.
             </p>
           </div>
         </section>
