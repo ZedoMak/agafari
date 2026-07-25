@@ -1,5 +1,5 @@
 import { useLanguage } from '../../../context/LanguageContext';
-import { ServiceStep } from '../../../types/service';
+import type { ServiceStep } from '../../../types/service';
 
 interface ServiceStepsProps {
   steps: ServiceStep[];

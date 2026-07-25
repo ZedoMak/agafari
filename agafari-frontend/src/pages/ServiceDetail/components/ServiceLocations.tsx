@@ -1,8 +1,6 @@
-import { MapPin, Phone, Navigation } from 'lucide-react';
-import { useLanguage } from '../../../context/LanguageContext';
+import { Phone, Navigation } from 'lucide-react';
 
 export function ServiceLocations() {
-  const { t } = useLanguage();
 
   return (
     <div className="mb-12">

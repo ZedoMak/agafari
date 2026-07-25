@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../../../context/LanguageContext';
-import { ServiceDocument } from '../../../types/service';
+import type { ServiceDocument } from '../../../types/service';
 import { Check } from 'lucide-react';
 
 interface RequiredDocumentsProps {

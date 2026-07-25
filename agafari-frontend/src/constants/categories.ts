@@ -1,4 +1,4 @@
-import { Category } from '../types/category';
+import type { Category } from '../types/category';
 
 export const CATEGORIES: Category[] = [
   { id: 'identity', name_en: 'Identity & Immigration', name_am: 'ማንነት እና ኢሚግሬሽን', iconName: 'Shield' },

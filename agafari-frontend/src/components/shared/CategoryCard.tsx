@@ -1,5 +1,5 @@
 import { useLanguage } from '../../context/LanguageContext';
-import { Category } from '../../types/category';
+import type { Category } from '../../types/category';
 import { Card, CardContent } from '../ui/card';
 import * as Icons from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Bot, User, MessageSquare, X } from 'lucide-react';
+import { Send, Bot, User, X } from 'lucide-react';
 
 interface ServiceAssistantProps {
   serviceName: string;
