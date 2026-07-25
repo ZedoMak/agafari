@@ -4,22 +4,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database.session import get_db
-from app.models import Source, Agency, Service, ChangeLog
+from app.models import AccessSession, Source, Agency, Service, ChangeLog
 from app.schemas.source import SourceCreatePayload
 from app.ai.indexer import index_source
 from app.ai.change_detector import detect_changes
+from app.security import require_access_session
 
 router = APIRouter(prefix="/api/v1/sources", tags=["Sources & Ingestion"])
 
 
 @router.post("")
-async def ingest_new_source(payload: SourceCreatePayload, db: AsyncSession = Depends(get_db)):
+async def ingest_new_source(
+    payload: SourceCreatePayload,
+    session: AccessSession = Depends(require_access_session),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Receives a new official directive or notice from the frontend.
     Chunks + embeds the text into pgvector and triggers AI change detection.
     """
     # 1. Verify the agency exists
-    result = await db.execute(select(Agency).where(Agency.id == payload.agency_id))
+    if payload.agency_id != session.agency_id:
+        raise HTTPException(status_code=403, detail="Organization scope mismatch")
+    result = await db.execute(select(Agency).where(Agency.id == session.agency_id))
     agency = result.scalar_one_or_none()
     if not agency:
         raise HTTPException(status_code=404, detail="Agency not found")
@@ -31,7 +38,10 @@ async def ingest_new_source(payload: SourceCreatePayload, db: AsyncSession = Dep
         source_type=payload.source_type,
         title=payload.title,
         source_url=payload.source_url,
-        raw_text_content=payload.raw_text_content
+        raw_text_content=payload.raw_text_content,
+        visibility="PUBLIC",
+        approval_status="APPROVED",
+        processing_status="INDEXING",
     )
     db.add(new_source)
     await db.flush()  # Get the ID before indexing

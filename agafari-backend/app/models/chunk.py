@@ -15,10 +15,18 @@ class Chunk(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     source_id: Mapped[str] = mapped_column(String(36), ForeignKey("sources.id", ondelete="CASCADE"), nullable=False, index=True)
+    agency_id: Mapped[Optional[str]] = mapped_column(
+        String(36),
+        ForeignKey("agencies.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     service_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True, index=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     embedding = mapped_column(Vector(settings.EMBEDDING_DIMENSION))
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    visibility: Mapped[str] = mapped_column(String(20), default="PUBLIC", index=True)
+    approval_status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
     metadata_: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
 
     __table_args__ = (

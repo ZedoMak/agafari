@@ -3,6 +3,15 @@ from app.models.office import Office
 from app.models.service import Service, Requirement, Source
 from app.models.change_log import ChangeLog
 from app.models.chunk import Chunk
+from app.models.saas import (
+    AccessSession,
+    AuditEvent,
+    ChatMessage,
+    Complaint,
+    Conversation,
+    Insight,
+    IssueCluster,
+)
 
 __all__ = [
     "Agency",
@@ -12,4 +21,11 @@ __all__ = [
     "Source",
     "ChangeLog",
     "Chunk",
+    "AccessSession",
+    "AuditEvent",
+    "ChatMessage",
+    "Complaint",
+    "Conversation",
+    "Insight",
+    "IssueCluster",
 ]

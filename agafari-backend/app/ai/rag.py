@@ -9,13 +9,16 @@ from app.ai import llm
 from app.ai.retriever import hybrid_search
 from app.ai.reranker import rerank
 from app.ai.context_builder import build_context
-from app.ai.prompts import RAG_SYSTEM_PROMPT
+from app.ai.prompts import INTERNAL_RAG_SYSTEM_PROMPT, RAG_SYSTEM_PROMPT
 
 
 async def generate_answer(
     service,
     message: str,
     db: AsyncSession,
+    organization=None,
+    scope: str = "PUBLIC",
+    history: list[dict] | None = None,
 ) -> dict:
     """Run the full RAG pipeline to answer a user's question.
 
@@ -27,6 +30,11 @@ async def generate_answer(
     Returns:
         Dict with 'reply' and 'cited_sources'.
     """
+    if organization is None and service is not None:
+        organization = service.agency
+    if organization is None:
+        raise ValueError("An organization is required for RAG retrieval")
+
     # 1. Embed the user's query
     query_embedding = await embed_client.embed_text(message)
 
@@ -34,8 +42,10 @@ async def generate_answer(
     raw_chunks = await hybrid_search(
         query_embedding=query_embedding,
         query_text=message,
-        service_id=service.id,
+        agency_id=organization.id,
+        service_id=service.id if service is not None else None,
         db=db,
+        scope=scope,
         limit=10,
     )
 
@@ -43,14 +53,32 @@ async def generate_answer(
     top_chunks = rerank(query=message, chunks=raw_chunks, top_k=5)
 
     # 4. Build context (structured service data + semantic chunks)
-    context = build_context(service=service, chunks=top_chunks)
+    context = build_context(
+        service=service,
+        chunks=top_chunks,
+        organization=organization,
+    )
+
+    if not top_chunks and service is None:
+        return {
+            "reply": (
+                "I don't have verified information about that question in the "
+                "organization's approved knowledge base."
+            ),
+            "cited_sources": [],
+            "answer_status": "UNANSWERED",
+            "retrieved_chunk_ids": [],
+        }
 
     # 5. Build prompt
-    system_prompt = RAG_SYSTEM_PROMPT.format(context=context)
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": message},
-    ]
+    prompt_template = (
+        INTERNAL_RAG_SYSTEM_PROMPT if scope == "INTERNAL" else RAG_SYSTEM_PROMPT
+    )
+    system_prompt = prompt_template.format(context=context)
+    messages = [{"role": "system", "content": system_prompt}]
+    if history:
+        messages.extend(history[-6:])
+    messages.append({"role": "user", "content": message})
 
     # 6. Generate answer via Addis AI
     reply = await llm.chat_completion(messages)
@@ -59,24 +87,20 @@ async def generate_answer(
     seen_sources = set()
     cited_sources = []
     for chunk in top_chunks:
+        source_id = chunk.metadata.get("source_id")
         title = chunk.metadata.get("source_title", "")
         url = chunk.metadata.get("source_url", "")
         if title and title not in seen_sources:
             seen_sources.add(title)
             cited_sources.append({
+                "source_id": source_id,
                 "source_title": title,
-                "source_url": url or "https://agafari.gov.et",
-            })
-
-    # If no chunks were found, still include the service's own sources
-    if not cited_sources and hasattr(service, "sources"):
-        for src in service.sources:
-            cited_sources.append({
-                "source_title": src.title,
-                "source_url": src.source_url or "https://agafari.gov.et",
+                "source_url": url or None,
             })
 
     return {
         "reply": reply,
         "cited_sources": cited_sources,
+        "answer_status": "ANSWERED" if top_chunks else "LOW_CONFIDENCE",
+        "retrieved_chunk_ids": [str(chunk.chunk_id) for chunk in top_chunks],
     }

@@ -12,8 +12,10 @@ RRF_K = 60
 async def hybrid_search(
     query_embedding: list[float],
     query_text: str,
-    service_id: str,
+    agency_id: str,
+    service_id: str | None,
     db: AsyncSession,
+    scope: str = "PUBLIC",
     limit: int = 10,
     vector_weight: float = 0.7,
 ) -> list[ScoredChunk]:
@@ -22,7 +24,9 @@ async def hybrid_search(
     Args:
         query_embedding: The embedded user query vector.
         query_text: The raw user query string (for keyword matching).
-        service_id: Filter chunks to this service only.
+        agency_id: Hard tenant boundary for all retrieval.
+        service_id: Optional service/program filter.
+        scope: PUBLIC retrieves public chunks; INTERNAL retrieves both tiers.
         db: Async database session.
         limit: Max results to return.
         vector_weight: Weight for vector results (keyword = 1 - vector_weight).
@@ -37,13 +41,28 @@ async def hybrid_search(
         SELECT id, content, metadata_,
                1 - (embedding <=> CAST(:query_vec AS vector)) AS score
         FROM chunks
-        WHERE service_id = :sid
+        WHERE agency_id = :agency_id
+          AND (
+            CAST(:sid AS varchar) IS NULL
+            OR service_id = CAST(:sid AS varchar)
+          )
+          AND approval_status = 'APPROVED'
+          AND (
+            (:scope = 'PUBLIC' AND visibility = 'PUBLIC')
+            OR (:scope = 'INTERNAL' AND visibility IN ('PUBLIC', 'INTERNAL'))
+          )
         ORDER BY embedding <=> CAST(:query_vec AS vector)
         LIMIT :lim
     """)
     vector_result = await db.execute(
         vector_sql,
-        {"query_vec": str(query_embedding), "sid": service_id, "lim": fetch_limit},
+        {
+            "query_vec": str(query_embedding),
+            "agency_id": agency_id,
+            "sid": service_id,
+            "scope": scope,
+            "lim": fetch_limit,
+        },
     )
     vector_rows = vector_result.fetchall()
 
@@ -57,10 +76,25 @@ async def hybrid_search(
         keyword_sql = text(f"""
             SELECT id, content, metadata_, 1.0 AS score
             FROM chunks
-            WHERE service_id = :sid AND ({conditions})
+            WHERE agency_id = :agency_id
+              AND (
+                CAST(:sid AS varchar) IS NULL
+                OR service_id = CAST(:sid AS varchar)
+              )
+              AND approval_status = 'APPROVED'
+              AND (
+                (:scope = 'PUBLIC' AND visibility = 'PUBLIC')
+                OR (:scope = 'INTERNAL' AND visibility IN ('PUBLIC', 'INTERNAL'))
+              )
+              AND ({conditions})
             LIMIT :lim
         """)
-        params = {"sid": service_id, "lim": fetch_limit}
+        params = {
+            "agency_id": agency_id,
+            "sid": service_id,
+            "scope": scope,
+            "lim": fetch_limit,
+        }
         for i, term in enumerate(search_terms):
             params[f"term{i}"] = f"%{term}%"
 

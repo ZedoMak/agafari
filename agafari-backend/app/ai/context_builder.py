@@ -8,7 +8,11 @@ relevant source document excerpts.
 from app.ai.reranker import ScoredChunk
 
 
-def build_context(service, chunks: list[ScoredChunk]) -> str:
+def build_context(
+    service,
+    chunks: list[ScoredChunk],
+    organization=None,
+) -> str:
     """Build a rich context string from service data and retrieved chunks.
 
     Args:
@@ -20,31 +24,32 @@ def build_context(service, chunks: list[ScoredChunk]) -> str:
     """
     sections = []
 
-    # Layer 1: Structured service data
-    sections.append("=== VERIFIED SERVICE INFORMATION ===")
-    sections.append(f"Service: {service.title}")
-    sections.append(f"Agency: {service.agency.name if service.agency else 'N/A'}")
-    sections.append(f"Fee: {service.fee_etb} ETB")
-    sections.append(f"Processing Time: {service.processing_time}")
-    sections.append(f"Verification Status: {service.verification_status}")
+    if organization is not None:
+        sections.append("=== ORGANIZATION ===")
+        sections.append(f"Organization: {organization.name}")
+        if organization.description:
+            sections.append(f"About: {organization.description}")
 
-    if service.payment_channels:
-        channels = ", ".join(
-            ch for ch, available in service.payment_channels.items() if available
-        )
-        sections.append(f"Payment Channels: {channels}")
+    # Layer 1: Structured program/service data, when the chat is scoped to one.
+    if service is not None:
+        sections.append("\n=== VERIFIED PROGRAM OR SERVICE INFORMATION ===")
+        sections.append(f"Program or Service: {service.title}")
+        sections.append(f"Category: {service.category}")
+        sections.append(f"Summary: {service.ai_summary}")
+        sections.append(f"Processing Time: {service.processing_time}")
+        sections.append(f"Verification Status: {service.verification_status}")
 
-    sections.append(f"Anti-Broker Notice: {service.anti_broker_notice}")
+        if service.fee_etb is not None:
+            sections.append(f"Fee or Payment Amount: {service.fee_etb} ETB")
 
-    # Requirements
-    if service.requirements:
-        sections.append("\nREQUIREMENTS:")
-        for i, req in enumerate(service.requirements, 1):
-            mandatory = "(MANDATORY)" if req.is_mandatory else "(optional)"
-            desc = f" — {req.description}" if req.description else ""
-            sections.append(f"  {i}. {req.title} {mandatory}{desc}")
-            if req.photo_specifications:
-                sections.append(f"     Photo Specs: {req.photo_specifications}")
+        if service.requirements:
+            sections.append("\nREQUIREMENTS OR ELIGIBILITY:")
+            for i, req in enumerate(service.requirements, 1):
+                mandatory = "(MANDATORY)" if req.is_mandatory else "(optional)"
+                desc = f" — {req.description}" if req.description else ""
+                sections.append(f"  {i}. {req.title} {mandatory}{desc}")
+                if req.photo_specifications:
+                    sections.append(f"     Specifications: {req.photo_specifications}")
 
     # Layer 2: Semantic chunks from source documents
     if chunks:

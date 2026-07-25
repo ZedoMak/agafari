@@ -4,19 +4,28 @@ from sqlalchemy import select
 from datetime import datetime
 from typing import List
 from app.database.session import get_db
-from app.models import ChangeLog, Service
+from app.models import AccessSession, ChangeLog, Service
 from app.schemas import ChangeLogSchema
+from app.security import require_access_session
 
 router = APIRouter(prefix="/api/v1/admin", tags=["Admin Verification"])
 
 
 @router.get("/change-logs", response_model=List[ChangeLogSchema])
-async def get_pending_change_logs(db: AsyncSession = Depends(get_db)):
+async def get_pending_change_logs(
+    session: AccessSession = Depends(require_access_session),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Fetches all unapproved AI-detected policy changes.
     """
     result = await db.execute(
-        select(ChangeLog).where(ChangeLog.status == "PENDING")
+        select(ChangeLog)
+        .join(Service, ChangeLog.service_id == Service.id)
+        .where(
+            ChangeLog.status == "PENDING",
+            Service.agency_id == session.agency_id,
+        )
     )
     logs = result.scalars().all()
 
@@ -41,12 +50,23 @@ async def get_pending_change_logs(db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/change-logs/{log_id}/approve")
-async def approve_change_log(log_id: str, db: AsyncSession = Depends(get_db)):
+async def approve_change_log(
+    log_id: str,
+    session: AccessSession = Depends(require_access_session),
+    db: AsyncSession = Depends(get_db),
+):
     """
     The WOW Moment: Admin approves a detected change.
     Updates the change log status AND resets the service's verification timestamp.
     """
-    result = await db.execute(select(ChangeLog).where(ChangeLog.id == log_id))
+    result = await db.execute(
+        select(ChangeLog)
+        .join(Service, ChangeLog.service_id == Service.id)
+        .where(
+            ChangeLog.id == log_id,
+            Service.agency_id == session.agency_id,
+        )
+    )
     log = result.scalar_one_or_none()
     if not log:
         raise HTTPException(status_code=404, detail="Change log entry not found")
@@ -69,12 +89,23 @@ async def approve_change_log(log_id: str, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/change-logs/{log_id}/reject")
-async def reject_change_log(log_id: str, db: AsyncSession = Depends(get_db)):
+async def reject_change_log(
+    log_id: str,
+    session: AccessSession = Depends(require_access_session),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Admin rejects a detected change (e.g., if a citizen submitted fake info).
     Updates the log status and restores the service status to VERIFIED.
     """
-    result = await db.execute(select(ChangeLog).where(ChangeLog.id == log_id))
+    result = await db.execute(
+        select(ChangeLog)
+        .join(Service, ChangeLog.service_id == Service.id)
+        .where(
+            ChangeLog.id == log_id,
+            Service.agency_id == session.agency_id,
+        )
+    )
     log = result.scalar_one_or_none()
     if not log:
         raise HTTPException(status_code=404, detail="Change log entry not found")

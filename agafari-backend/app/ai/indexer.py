@@ -47,9 +47,12 @@ async def index_source(source_id: str, db: AsyncSession) -> int:
 
     # 6. Create Chunk records
     chunk_metadata = {
+        "source_id": source.id,
         "source_title": source.title,
         "source_url": source.source_url or "",
         "source_type": source.source_type,
+        "visibility": source.visibility,
+        "department": source.department or "",
     }
 
     chunk_models = []
@@ -57,14 +60,18 @@ async def index_source(source_id: str, db: AsyncSession) -> int:
         chunk_models.append(Chunk(
             id=str(uuid.uuid4()),
             source_id=source_id,
+            agency_id=source.agency_id,
             service_id=primary_service_id,
             content=chunk_data.content,
             embedding=emb,
             chunk_index=chunk_data.index,
+            visibility=source.visibility,
+            approval_status=source.approval_status,
             metadata_=chunk_metadata,
         ))
 
     db.add_all(chunk_models)
+    source.processing_status = "READY"
     await db.flush()
 
     return len(chunk_models)
@@ -78,7 +85,10 @@ async def index_all_sources(db: AsyncSession) -> int:
     """
     # Find sources that have raw_text_content but no chunks
     result = await db.execute(
-        select(Source.id).where(Source.raw_text_content.isnot(None))
+        select(Source.id).where(
+            Source.raw_text_content.isnot(None),
+            Source.approval_status == "APPROVED",
+        )
     )
     source_ids = [row[0] for row in result.fetchall()]
 

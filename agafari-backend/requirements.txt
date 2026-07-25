@@ -5,3 +5,6 @@ psycopg[binary]
 pgvector
 pydantic-settings
 httpx
+alembic
+pypdf
+python-multipart

@@ -2,8 +2,22 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.session import init_db, async_session
+from app.config.settings import settings
 import app.models
-from app.routers import services, offices, chat, admin, sources, agencies
+from app.routers import (
+    access,
+    admin,
+    agencies,
+    chat,
+    complaints,
+    dashboard,
+    documents,
+    offices,
+    organizations,
+    saas_chat,
+    services,
+    sources,
+)
 
 
 @asynccontextmanager
@@ -28,26 +42,36 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="አጋፋሪ (Agafari) API",
-    description="Digital Navigation & Guidance Layer for Ethiopian Public Services",
-    version="1.0.0",
+    description="Hosted public and internal knowledge intelligence for organizations",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in settings.CORS_ORIGINS.split(",")
+        if origin.strip()
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Mount all the routers
+app.include_router(organizations.router)
+app.include_router(access.router)
 app.include_router(agencies.router)
 app.include_router(sources.router)
+app.include_router(documents.router)
 app.include_router(services.router)
 app.include_router(offices.router)
 app.include_router(chat.router)
+app.include_router(saas_chat.router)
+app.include_router(complaints.router)
 app.include_router(admin.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/")

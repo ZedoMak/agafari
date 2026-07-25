@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
-from sqlalchemy import String, Text, Numeric, Boolean, DateTime, ForeignKey, Table, JSON, Float, Column
+from sqlalchemy import String, Text, Numeric, Boolean, DateTime, ForeignKey, Table, JSON, Float, Column, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.session import Base
 
@@ -68,3 +68,15 @@ class Source(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     source_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     raw_text_content: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    visibility: Mapped[str] = mapped_column(String(20), default="PUBLIC", index=True)
+    approval_status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
+    department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    checksum: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    processing_status: Mapped[str] = mapped_column(String(20), default="PENDING")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+    )

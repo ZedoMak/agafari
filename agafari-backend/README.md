@@ -1,4 +1,50 @@
-# Agafari AI Backend 🚀
+# Agafari Knowledge Intelligence Backend
+
+Agafari is a Shopify-like hosted knowledge platform for organizations. A single
+multi-tenant backend powers:
+
+- a branded public programs/services page and grounded public RAG assistant;
+- an access-code-protected internal employee RAG over approved private documents;
+- complaint and feedback intake;
+- document approval, conversation logs, issue clustering, and an insight dashboard.
+
+The first pilot is a fictional NGO (`hope-aid`). Public and internal knowledge
+are isolated in the database retrieval query, not only by prompts.
+
+## Pilot setup
+
+```bash
+source .venv/bin/activate
+pip install -r requirements.txt
+alembic upgrade head
+python seed_saas_demo.py
+uvicorn app.main:app --reload --port 8000
+```
+
+Demo organization:
+
+- Slug: `hope-aid`
+- Access code: `ngo-demo`
+
+Important API groups:
+
+- `GET /api/v1/organizations/{slug}/bootstrap`
+- `GET /api/v1/organizations/{slug}/services`
+- `POST /api/v1/public/services/{service_id}/chat`
+- `POST /api/v1/public/complaints`
+- `POST /api/v1/access/session`
+- `POST /api/v1/internal/chat`
+- `/api/v1/admin/documents`
+- `/api/v1/admin/dashboard/summary`
+- `/api/v1/admin/insights`
+
+Run unit tests:
+
+```bash
+python -m unittest discover -s tests
+```
+
+## Original government-service prototype
 
 A high-performance, asynchronous FastAPI platform powering the **Agafari** citizen-services intelligence platform. It features vector-based hybrid RAG search, AI-driven change detection, admin approval workflows, and background service summarization built over NeonDB (PostgreSQL + pgvector).
 
