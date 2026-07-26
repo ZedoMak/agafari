@@ -49,8 +49,63 @@ Important API groups:
 Run unit tests:
 
 ```bash
-python -m unittest discover -s tests
+python tests/test_saas_unit.py
+python tests/test_admin_services_unit.py
 ```
+
+## Deploying to Render
+
+`render.yaml` at the repository root describes the API and the frontend. Create
+them from Render's Blueprints tab, or configure a web service by hand with:
+
+| Setting | Value |
+| --- | --- |
+| Root directory | `agafari-backend` |
+| Build command | `pip install -r requirements.txt` |
+| Start command | `python prestart.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT` |
+| Health check path | `/` |
+
+Set `DATABASE_URL` and `OPENROUTER_API_KEY`, set `AUTO_CREATE_TABLES=false`, and
+change `DEMO_ACCESS_CODE` from its default. Paste the connection string exactly
+as your provider prints it — `postgres://` and `postgresql://` are both
+rewritten to the psycopg driver the app ships with.
+
+### Why prestart.py
+
+The schema has two owners. Tables that predate Alembic are declared on the
+models and built with `create_all`; everything since ships as a migration. A
+database that grew alongside the code is fine, but a fresh one is not:
+migrations alone fail because they alter tables nobody created, and `create_all`
+alone fails the migrations because their tables already exist.
+
+`prestart.py` looks at what the database actually contains and picks the right
+path — build and stamp, adopt and migrate, or just migrate. It also enables
+pgvector. Every path is idempotent, so it runs on each boot.
+
+Verify it against a throwaway database before trusting a deploy:
+
+```bash
+docker run -d --name agafari-fresh-test -e POSTGRES_PASSWORD=test \
+  -e POSTGRES_DB=agafari -p 55432:5432 pgvector/pgvector:pg16
+scripts/verify_bootstrap.sh
+docker rm -f agafari-fresh-test
+```
+
+### After the first deploy
+
+Seeds and indexing are separate from boot, so run them once from a shell on the
+service (or locally against the same `DATABASE_URL`):
+
+```bash
+python seed_saas_demo.py
+python seed_demo_sites.py
+python reindex.py
+```
+
+Uploaded documents are parsed to text and stored in Postgres, never on disk, so
+the service needs no persistent volume. Add the frontend's origin to
+`EXTRA_CORS_ORIGINS` unless it is served from an `agafari.com` domain, which
+`CORS_ORIGIN_REGEX` already matches.
 
 ## Original government-service prototype
 

@@ -1,0 +1,82 @@
+# Render blueprint for Agafari: the API and the Next.js frontend.
+#
+# Create both from this file with Render's Blueprints tab. Two values are left
+# blank on purpose and are prompted for on first deploy:
+#
+#   DATABASE_URL              your Postgres connection string (Neon, or the
+#                             Render database in the commented block below)
+#   OPENROUTER_API_KEY        used for answer generation and embeddings
+#
+# Deploy the API first, then set the frontend's NEXT_PUBLIC_API_BASE_URL to the
+# API's URL, because Next.js bakes public variables in at build time.
+
+services:
+  - type: web
+    name: agafari-api
+    runtime: python
+    plan: starter
+    region: oregon
+    rootDir: agafari-backend
+    buildCommand: pip install -r requirements.txt
+    # prestart.py prepares the schema and is idempotent, so it is safe on every
+    # boot. On a paid plan with more than one instance, move it to
+    # preDeployCommand so replicas do not migrate concurrently.
+    startCommand: python prestart.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ADDIS_AI_API_KEY
+        sync: false
+      # prestart.py owns the schema, so workers must not race to build it.
+      - key: AUTO_CREATE_TABLES
+        value: "false"
+      - key: INDEX_ON_STARTUP
+        value: "true"
+      - key: LLM_MODEL
+        value: gpt-4o-mini
+      - key: EMBEDDING_MODEL
+        value: openai/text-embedding-3-small
+      - key: EMBEDDING_DIMENSION
+        value: "1536"
+      # Change this before going live; it is the fallback code for organizations
+      # that have no access code hash of their own.
+      - key: DEMO_ACCESS_CODE
+        sync: false
+      # Tenant sites answer on their own subdomains, so origins are matched by
+      # pattern. Add the Render frontend URL here once it exists.
+      - key: EXTRA_CORS_ORIGINS
+        sync: false
+
+  - type: web
+    name: agafari-web
+    runtime: node
+    plan: starter
+    region: oregon
+    rootDir: agafari-frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.11.0
+      # Set to the agafari-api URL, e.g. https://agafari-api.onrender.com
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
+      # Set to this service's own URL, used for canonical links and metadata.
+      - key: NEXT_PUBLIC_SITE_URL
+        sync: false
+
+# Prefer Render's own Postgres over an external one? Uncomment this, then point
+# the API's DATABASE_URL at it with fromDatabase instead of sync: false. Render
+# Postgres supports the pgvector extension that prestart.py enables.
+#
+# databases:
+#   - name: agafari-db
+#     plan: basic-256mb
+#     region: oregon
+#     postgresMajorVersion: "16"

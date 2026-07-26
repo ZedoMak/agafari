@@ -39,9 +39,10 @@ async def _index_pending_sources() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup: create tables + pgvector extension, then index in the background."""
-    await init_db()
-    print("✅ Database initialized (pgvector enabled, tables created)")
+    """Startup: prepare the schema locally, then index in the background."""
+    if settings.AUTO_CREATE_TABLES:
+        await init_db()
+        print("✅ Database initialized (pgvector enabled, tables created)")
 
     # Indexing calls an external embedding provider, so it must never block the
     # API from accepting requests.
@@ -67,11 +68,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        origin.strip()
-        for origin in settings.CORS_ORIGINS.split(",")
-        if origin.strip()
-    ],
+    allow_origins=settings.cors_origins,
     # Tenant sites run on their own subdomains, which cannot be enumerated.
     allow_origin_regex=settings.CORS_ORIGIN_REGEX or None,
     allow_credentials=True,

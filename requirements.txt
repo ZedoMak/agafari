@@ -1,10 +1,3 @@
-fastapi
-uvicorn[standard]
-sqlalchemy[asyncio]
-psycopg[binary]
-pgvector
-pydantic-settings
-httpx
-alembic
-pypdf
-python-multipart
+# The API lives in agafari-backend; its requirements are the real list.
+# This file exists so a host that installs from the repository root still works.
+-r agafari-backend/requirements.txt
