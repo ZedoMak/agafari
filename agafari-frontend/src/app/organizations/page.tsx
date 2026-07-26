@@ -1,47 +1,42 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
-import { getOrganizations } from "@/lib/api";
-import type { Organization } from "@/lib/types";
-import { DirectoryClient } from "./directory-client";
+import { HOPE_AID_DEMO } from "@/lib/demo-sites";
 
 export const metadata: Metadata = {
-  title: "Template demos",
+  title: "Demos",
   description:
-    "Preview example company sites built from Agafari templates. Demos only—Agafari sells templates, not customer support.",
+    "Company site demos live under /sites/[slug]. Marketing no longer hosts customer service here.",
 };
 
-export const dynamic = "force-dynamic";
-
-export default async function OrganizationsPage() {
-  let organizations: Organization[] = [];
-  let unavailable = false;
-  try {
-    organizations = await getOrganizations();
-  } catch {
-    unavailable = true;
-  }
-
+export default function OrganizationsPage() {
   return (
     <>
       <SiteHeader />
       <main>
         <section className="page-hero">
-          <div className="container">
-            <span className="eyebrow">Template demos</span>
-            <h1>See a deployed template.</h1>
+          <div className="container narrow-container">
+            <span className="eyebrow">Demos moved</span>
+            <h1>Company sites live under /sites</h1>
             <p>
-              Example company sites after someone chose a template and
-              customized it. Your customers would use a site like this—on your
-              domain, not on Agafari.
+              Agafari does not serve organization customers on this marketing
+              directory. Published demos are isolated company sites. The current
+              mock Clarity demo is Hope Aid.
             </p>
-          </div>
-        </section>
-        <section className="section">
-          <div className="container">
-            <DirectoryClient
-              organizations={organizations}
-              unavailable={unavailable}
-            />
+            <p className="mock-data-callout">
+              Demo uses <strong>mock data only</strong>
+            </p>
+            <div className="hero-actions">
+              <Link
+                href={HOPE_AID_DEMO.siteHref}
+                className="button button-primary"
+              >
+                Open {HOPE_AID_DEMO.siteHref}
+              </Link>
+              <Link href="/templates" className="button button-secondary">
+                View embedded preview
+              </Link>
+            </div>
           </div>
         </section>
       </main>

@@ -122,7 +122,9 @@ export type BrandPalette = {
   variables: CSSProperties;
 };
 
-export function buildBrandPalette(organization: Organization): BrandPalette {
+export function buildBrandPalette(
+  organization: Pick<Organization, "theme">,
+): BrandPalette {
   const primaryRgb =
     parseHex(organization.theme?.primary ?? "") ?? parseHex(FALLBACK_PRIMARY)!;
   const accentRgb =

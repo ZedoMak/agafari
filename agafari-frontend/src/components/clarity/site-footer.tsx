@@ -35,6 +35,8 @@ export function SiteFooter() {
             <h4>Explore</h4>
             <div className="c-footer-links">
               <Link href={href("/services")}>{terminology.plural}</Link>
+              <Link href={href("/updates")}>Updates</Link>
+              <Link href={href("/about")}>About us</Link>
               {organization.features.public_chat && (
                 <Link href={href("/ask")}>Ask the assistant</Link>
               )}
@@ -56,7 +58,6 @@ export function SiteFooter() {
                   {contact.website.replace(/^https?:\/\//, "")}
                 </a>
               )}
-              <Link href={href("/access")}>Staff sign in</Link>
             </div>
           </div>
         </div>
@@ -66,7 +67,13 @@ export function SiteFooter() {
             © {year} {organization.name}. Answers are generated from approved
             public documents and may not cover every situation.
           </span>
-          <span>Site by Agafari</span>
+          {/* Staff management runs on a separate admin host, so this stays an absolute path. */}
+          <a
+            className="c-footer-staff"
+            href={`/admin?org=${encodeURIComponent(organization.slug)}`}
+          >
+            Staff sign in
+          </a>
         </div>
       </div>
     </footer>

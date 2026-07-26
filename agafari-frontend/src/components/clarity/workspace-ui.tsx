@@ -123,23 +123,3 @@ export function relativeTime(value: string) {
   if (days < 30) return `${days}d ago`;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
-
-export function ApiGapNotice({
-  endpoint,
-  children,
-}: {
-  endpoint: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="c-alert c-alert-caution">
-      <div>
-        <strong>Not wired up yet</strong>
-        <div style={{ marginTop: "0.25rem" }}>{children}</div>
-        <code className="c-mono" style={{ display: "block", marginTop: "0.4rem" }}>
-          {endpoint}
-        </code>
-      </div>
-    </div>
-  );
-}

@@ -2,11 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HeroAsk } from "@/components/clarity/hero-ask";
 import { ServiceCard } from "@/components/clarity/service-card";
+import { UpdatesHighlights } from "@/components/clarity/updates-highlights";
 import { joinPath } from "@/lib/clarity/href";
-import { getOrganization, getOrganizationServices } from "@/lib/api";
+import {
+  getOrganization,
+  getOrganizationServices,
+  getOrganizationUpdates,
+} from "@/lib/api";
 import { resolveBasePath } from "@/lib/clarity/base-path";
 import { terminologyOf } from "@/lib/clarity/brand";
-import type { Service } from "@/lib/types";
+import type { OrganizationUpdate, Service } from "@/lib/types";
 
 export default async function TenantHome({
   params,
@@ -18,6 +23,9 @@ export default async function TenantHome({
   if (!organization) notFound();
 
   const services: Service[] = await getOrganizationServices(slug).catch(() => []);
+  const updates: OrganizationUpdate[] = await getOrganizationUpdates(slug, 2).catch(
+    () => [],
+  );
   const basePath = await resolveBasePath(slug);
   const href = (path: string) => joinPath(basePath, path);
   const words = terminologyOf(organization);
@@ -147,6 +155,11 @@ export default async function TenantHome({
           )}
         </div>
       </section>
+
+      <UpdatesHighlights
+        updates={updates.slice(0, 2)}
+        updatesHref={href("/updates")}
+      />
 
       <section className="c-section-tight" style={{ paddingBottom: "4rem" }}>
         <div className="c-container">

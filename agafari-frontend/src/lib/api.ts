@@ -3,6 +3,7 @@ import type {
   ComplaintPayload,
   ComplaintResponse,
   Organization,
+  OrganizationUpdate,
   Service,
 } from "@/lib/types";
 
@@ -54,7 +55,7 @@ async function request<T>(
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new ApiError("The request timed out. Please try again.", 408);
     }
-    throw new ApiError("Agafari is temporarily unavailable.", 503);
+    throw new ApiError("This service is temporarily unavailable.", 503);
   } finally {
     clearTimeout(timeout);
   }
@@ -74,6 +75,25 @@ export function getOrganizationServices(slug: string): Promise<Service[]> {
   return request<Service[]>(
     `/api/v1/organizations/${encodeURIComponent(slug)}/services`,
   );
+}
+
+/**
+ * The updates feed is optional per deployment, so a missing or failing endpoint
+ * resolves to an empty list instead of taking a visitor page down with it.
+ */
+export async function getOrganizationUpdates(
+  slug: string,
+  limit?: number,
+): Promise<OrganizationUpdate[]> {
+  const query = limit ? `?limit=${encodeURIComponent(limit)}` : "";
+  try {
+    const updates = await request<OrganizationUpdate[]>(
+      `/api/v1/organizations/${encodeURIComponent(slug)}/updates${query}`,
+    );
+    return Array.isArray(updates) ? updates : [];
+  } catch {
+    return [];
+  }
 }
 
 export function askPublicAssistant(

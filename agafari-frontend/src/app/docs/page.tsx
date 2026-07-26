@@ -29,17 +29,20 @@ export default function DocsPage() {
             <article>
               <h2>1. Choose a template</h2>
               <p>
-                Browse the{" "}
-                <Link href="/#templates">template showcase</Link> or{" "}
-                <Link href="/templates">gallery</Link>. Clarity and Pulse have
-                live demos.
+                Browse the <Link href="/templates">template gallery</Link>. Four
+                styles run as mock organizations you can open — from{" "}
+                <Link href="/sites/hope-aid">Hope Aid</Link> to{" "}
+                <Link href="/sites/northbridge">Northbridge University</Link>.
               </p>
             </article>
             <article>
               <h2>2. Customize branding</h2>
               <p>
                 Logo, colors, terminology, and services are controlled from the
-                organization dashboard after you subscribe.
+                organization dashboard after you subscribe. The four demo sites
+                are the same template with different configuration — Northbridge
+                even renames every &ldquo;service&rdquo; to
+                &ldquo;programme&rdquo;.
               </p>
             </article>
             <article>
@@ -60,8 +63,8 @@ export default function DocsPage() {
               <Link href="/partner" className="button button-primary">
                 Start building
               </Link>
-              <Link href="/organizations/hope-aid" className="button button-secondary">
-                Open Clarity demo
+              <Link href="/templates" className="button button-secondary">
+                Compare live demo sites
               </Link>
             </div>
           </div>

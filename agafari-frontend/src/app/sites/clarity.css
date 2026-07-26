@@ -2090,3 +2090,247 @@ a.c-citation:hover {
     justify-content: flex-start;
   }
 }
+
+/* ============================================================================
+ * APPENDED BLOCK — about, updates, procedure steps, staff link.
+ * Additive only: everything above this line is untouched.
+ * ========================================================================== */
+
+/* ------------------------------------------------------------- about -- */
+
+.c-about-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+.c-about-points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 1.1rem;
+  max-width: 62ch;
+  font-size: 0.9375rem;
+  color: var(--c-ink-soft);
+}
+
+.c-about-points li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding-left: 0.1rem;
+}
+
+.c-about-points li::before {
+  content: "";
+  margin-top: 0.55rem;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--c-brand-400);
+}
+
+.c-about-points strong {
+  color: var(--c-ink);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------- updates -- */
+
+.c-updates-wrap {
+  max-width: 760px;
+}
+
+.c-updates {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  padding-left: 1.4rem;
+}
+
+.c-updates::before {
+  content: "";
+  position: absolute;
+  top: 0.55rem;
+  bottom: 0.55rem;
+  left: 4px;
+  width: 1px;
+  background: var(--c-line-strong);
+}
+
+.c-update {
+  position: relative;
+}
+
+.c-update::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  left: -1.4rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--c-surface);
+  border: 2px solid var(--c-line-strong);
+}
+
+.c-update[data-origin="AI_DETECTED"]::before {
+  border-color: var(--c-brand-500);
+}
+
+.c-update-body {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: var(--c-radius-md);
+  box-shadow: var(--c-shadow-xs);
+  padding: 1.1rem 1.25rem 1.2rem;
+}
+
+.c-update-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.c-update-date {
+  font-size: 0.8125rem;
+  color: var(--c-muted);
+}
+
+.c-update-title {
+  font-size: 1.2rem;
+}
+
+.c-update-summary {
+  margin-top: 0.5rem;
+  color: var(--c-ink-soft);
+  font-size: 0.9375rem;
+}
+
+.c-update-effective {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 550;
+  color: var(--c-brand-700);
+}
+
+.c-update-effective span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.c-update-link {
+  margin-top: 0.9rem;
+}
+
+.c-update-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 1rem;
+}
+
+/* -------------------------------------------------- procedure steps -- */
+
+.c-steps-block {
+  margin-top: 2.25rem;
+}
+
+.c-steps {
+  counter-reset: c-step;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  max-width: 62ch;
+}
+
+.c-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--c-line);
+  border-radius: var(--c-radius-sm);
+  background: var(--c-surface);
+  font-size: 0.9375rem;
+  color: var(--c-ink-soft);
+}
+
+.c-step-index {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--c-brand-50);
+  color: var(--c-brand-700);
+  border: 1px solid color-mix(in srgb, var(--c-brand-500) 20%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-step-text {
+  padding-top: 0.15rem;
+}
+
+/* ---------------------------------------------------- footer + nav -- */
+
+.c-footer-staff {
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  text-decoration: underline;
+  text-decoration-color: var(--c-line-strong);
+  text-underline-offset: 3px;
+}
+
+.c-footer-staff:hover {
+  color: var(--c-ink-soft);
+}
+
+/* Six nav items need tighter spacing before the mobile menu takes over. */
+@media (max-width: 1080px) {
+  .c-header-inner {
+    gap: 1rem;
+  }
+
+  .c-nav {
+    gap: 0;
+  }
+
+  .c-nav a {
+    padding-inline: 0.5rem;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .c-updates {
+    padding-left: 1.1rem;
+  }
+
+  .c-update::before {
+    left: -1.1rem;
+  }
+
+  .c-update-body {
+    padding: 1rem;
+  }
+
+  .c-steps li {
+    padding: 0.75rem 0.85rem;
+  }
+}

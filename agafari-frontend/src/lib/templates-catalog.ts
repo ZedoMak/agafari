@@ -1,105 +1,177 @@
+import {
+  HOPE_AID_DEMO,
+  LUMEN_CITY_DEMO,
+  METRO_HEALTH_DEMO,
+  NORTHBRIDGE_DEMO,
+  type DemoSite,
+} from "@/lib/demo-sites";
+
+/** Layout personality used by the gallery mockups. */
+export type TemplateVariant =
+  | "centered"
+  | "editorial"
+  | "booking"
+  | "portal"
+  | "columns"
+  | "support";
+
+export type TemplateStatus = "live" | "design";
+
 export type TemplateCatalogItem = {
   id: string;
   name: string;
   category: string;
+  tagline: string;
   description: string;
+  features: string[];
+  variant: TemplateVariant;
+  surface: "light" | "tint" | "sand" | "dark";
   accent: string;
   accentSoft: string;
-  previewHref: string;
+  /**
+   * `live` = a real site you can open and use (Clarity → Hope Aid).
+   * `design` = visual design only; no working site behind it yet.
+   */
+  status: TemplateStatus;
   useHref: string;
-  live?: boolean;
+  demo?: DemoSite;
 };
 
-/** Marketing catalog — Clarity/Pulse have live demos; others invite subscribe. */
 export const TEMPLATE_CATALOG: TemplateCatalogItem[] = [
   {
     id: "clarity",
     name: "Clarity",
-    category: "NGO",
+    category: "NGO & public programs",
+    tagline: "Calm, trust-first layout with a guided assistant",
     description:
-      "Calm, trust-first layout for programs, eligibility, and public guidance.",
+      "Spacious programme catalogue, an ask box in the hero, and citations kept visible. Built for organizations whose visitors need reassurance as much as answers.",
+    features: [
+      "Ask box in the hero",
+      "Spacious programme cards",
+      "Citation-forward answers",
+      "Feedback and complaint intake",
+    ],
+    variant: "centered",
+    surface: "tint",
     accent: "#126b50",
     accentSoft: "#dff1e9",
-    previewHref: "/organizations/hope-aid",
+    status: "live",
     useHref: "/partner?template=clarity",
-    live: true,
+    demo: HOPE_AID_DEMO,
   },
   {
-    id: "pulse",
-    name: "Pulse",
-    category: "Business",
+    id: "aurora",
+    name: "Aurora",
+    category: "Education & universities",
+    tagline: "Editorial split hero for admissions and student services",
     description:
-      "Dense support-forward site for high-volume questions and service status.",
-    accent: "#195ca8",
-    accentSoft: "#eaf2fb",
-    previewHref: "/organizations",
-    useHref: "/partner?template=pulse",
-    live: true,
+      "Large typographic hero with a study-path rail. Suits schools and universities that publish many programmes and deadlines side by side.",
+    features: [
+      "Editorial split hero",
+      "Programme rail with deadlines",
+      "Student vs staff entry points",
+      "Deadline and intake highlights",
+    ],
+    variant: "editorial",
+    surface: "light",
+    accent: "#4c3fa8",
+    accentSoft: "#ebe9fb",
+    status: "live",
+    useHref: "/partner?template=aurora",
+    demo: NORTHBRIDGE_DEMO,
   },
   {
-    id: "campus",
-    name: "Campus",
-    category: "Education",
+    id: "vitals",
+    name: "Vitals",
+    category: "Healthcare & clinics",
+    tagline: "Appointment-first layout with preparation guidance",
     description:
-      "Admissions, fees, and student services with clear guided answers.",
-    accent: "#0f6a62",
-    accentSoft: "#e4f5f2",
-    previewHref: "/templates#campus",
-    useHref: "/partner?template=campus",
-  },
-  {
-    id: "care",
-    name: "Care",
-    category: "Healthcare",
-    description:
-      "Appointments, preparation steps, and clinic information patients can trust.",
-    accent: "#0d6e8a",
-    accentSoft: "#e5f4f8",
-    previewHref: "/templates#care",
-    useHref: "/partner?template=care",
+      "Booking panel beside plain-language preparation steps, so patients can act and ask in the same view.",
+    features: [
+      "Appointment panel above the fold",
+      "Preparation checklists",
+      "Department directory",
+      "Visit-scoped assistant",
+    ],
+    variant: "booking",
+    surface: "tint",
+    accent: "#0d7490",
+    accentSoft: "#e2f3f8",
+    status: "live",
+    useHref: "/partner?template=vitals",
+    demo: METRO_HEALTH_DEMO,
   },
   {
     id: "civic",
     name: "Civic",
-    category: "Government",
+    category: "Government & municipal",
+    tagline: "Formal service portal with notices and dense directory",
     description:
-      "Procedures, requirements, and office guidance for residents.",
+      "Utility bar, notice strip, and a compact service grid — the shape residents already expect from an official site.",
+    features: [
+      "Utility bar and notices",
+      "Dense service directory",
+      "Office and hours blocks",
+      "Procedure-scoped answers",
+    ],
+    variant: "portal",
+    surface: "light",
     accent: "#1f4d7a",
-    accentSoft: "#e8eef6",
-    previewHref: "/templates#civic",
+    accentSoft: "#e7eef7",
+    status: "live",
     useHref: "/partner?template=civic",
+    demo: LUMEN_CITY_DEMO,
   },
   {
-    id: "atlas",
-    name: "Atlas",
-    category: "University",
+    id: "ledger",
+    name: "Ledger",
+    category: "Finance & legal",
+    tagline: "Document-forward layout with a quiet, serious tone",
     description:
-      "Departments, registration, and campus policies in one polished portal.",
-    accent: "#4a3f8c",
-    accentSoft: "#eeebf8",
-    previewHref: "/templates#atlas",
-    useHref: "/partner?template=atlas",
+      "Two-column document list next to an expandable question set. For teams whose answers must sit next to the paperwork.",
+    features: [
+      "Document-forward columns",
+      "Expandable question set",
+      "Fee and eligibility tables",
+      "Source-linked responses",
+    ],
+    variant: "columns",
+    surface: "sand",
+    accent: "#7a5a12",
+    accentSoft: "#f6efdf",
+    status: "design",
+    useHref: "/partner?template=ledger",
   },
   {
-    id: "borough",
-    name: "Borough",
-    category: "Municipality",
+    id: "pulse",
+    name: "Pulse",
+    category: "Telecom & support ops",
+    tagline: "Dark, status-led layout where chat does the work",
     description:
-      "Local services, permits, and community updates for city websites.",
-    accent: "#2f6b3a",
-    accentSoft: "#e8f3ea",
-    previewHref: "/templates#borough",
-    useHref: "/partner?template=borough",
-  },
-  {
-    id: "counsel",
-    name: "Counsel",
-    category: "Legal",
-    description:
-      "Practice areas, intake guidance, and document-backed client answers.",
-    accent: "#5c4630",
-    accentSoft: "#f4efe5",
-    previewHref: "/templates#counsel",
-    useHref: "/partner?template=counsel",
+      "Service status rows with a dominant assistant panel. Suits high-volume support where deflection matters more than browsing.",
+    features: [
+      "Service status rows",
+      "Assistant dominant on entry",
+      "Ticket and complaint intake",
+      "Dark interface by default",
+    ],
+    variant: "support",
+    surface: "dark",
+    accent: "#4f9fe8",
+    accentSoft: "#12233a",
+    status: "design",
+    useHref: "/partner?template=pulse",
   },
 ];
+
+export function getTemplate(id: string): TemplateCatalogItem | undefined {
+  return TEMPLATE_CATALOG.find((item) => item.id === id);
+}
+
+export const DESIGN_TEMPLATES = TEMPLATE_CATALOG.filter(
+  (item) => item.status === "design",
+);
+
+export const LIVE_TEMPLATES = TEMPLATE_CATALOG.filter(
+  (item) => item.status === "live",
+);

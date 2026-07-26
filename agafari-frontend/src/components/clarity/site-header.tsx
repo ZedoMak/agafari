@@ -21,6 +21,8 @@ export function SiteHeader() {
   const links = [
     { label: "Home", path: "/" },
     { label: terminology.plural, path: "/services" },
+    { label: "Updates", path: "/updates" },
+    { label: "About", path: "/about" },
     ...(organization.features.public_chat
       ? [{ label: "Ask AI", path: "/ask" }]
       : []),

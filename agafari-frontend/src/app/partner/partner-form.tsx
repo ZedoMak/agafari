@@ -56,7 +56,8 @@ export function PartnerForm() {
         >
           {TEMPLATE_CATALOG.map((item) => (
             <option value={item.id} key={item.id}>
-              {item.name} — {item.category}
+              {item.name}
+              {item.status === "live" ? "" : " (design preview)"}
             </option>
           ))}
         </select>
@@ -86,12 +87,12 @@ export function PartnerForm() {
           onChange={(event) => setNotes(event.target.value)}
           minLength={10}
           required
-          placeholder="e.g. We want Clarity for our foundation; deploy on a subdomain."
+          placeholder="e.g. We want Clarity for our foundation; deploy like the Hope Aid mock demo."
         />
       </label>
       <p className="field-help">
-        Submitting opens your email client. This starts your Get Started
-        conversation—checkout is not wired yet.
+        Preview the mock Clarity site at /sites/hope-aid first if you want. This
+        form starts a Get Started conversation—checkout is not wired yet.
       </p>
       <button className="button button-brand" type="submit">
         Start building

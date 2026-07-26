@@ -32,7 +32,7 @@ export async function generateMetadata({
     const organization = await getOrganization(slug);
     return {
       title: {
-        default: organization.name,
+        absolute: organization.name,
         template: `%s · ${organization.name}`,
       },
       description:

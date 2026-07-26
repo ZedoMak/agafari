@@ -49,6 +49,9 @@ export default async function ServiceDetailPage({ params }: PageProps) {
   const href = (path: string) => joinPath(basePath, path);
   const words = terminologyOf(organization);
   const verifiedOn = formatDate(service.last_verified_at);
+  const steps = (service.procedure_steps ?? []).filter(
+    (step) => typeof step === "string" && step.trim().length > 0,
+  );
 
   return (
     <section className="c-section">
@@ -78,6 +81,22 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             <div className="c-prose">
               <p>{service.summary}</p>
             </div>
+
+            {steps.length > 0 && (
+              <div className="c-steps-block">
+                <h2 className="c-title-md">How it works</h2>
+                <ol className="c-steps">
+                  {steps.map((step, index) => (
+                    <li key={`${index}-${step}`}>
+                      <span className="c-step-index" aria-hidden="true">
+                        {index + 1}
+                      </span>
+                      <span className="c-step-text">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
             <dl className="c-meta-list">
               <div>

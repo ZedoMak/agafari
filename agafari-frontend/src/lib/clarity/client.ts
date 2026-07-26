@@ -1,6 +1,15 @@
 import { API_BASE_URL, ApiError } from "@/lib/api";
 import { UNAUTHORIZED_EVENT } from "@/lib/clarity/session";
-import type { ChatResponse } from "@/lib/types";
+import type { ChatResponse, Organization } from "@/lib/types";
+import type {
+  AdminService,
+  AnnouncementInput,
+  ChangeLogRecord,
+  ChangeLogStatus,
+  OrganizationSettingsInput,
+  ServiceInput,
+  ServiceSummaryResult,
+} from "@/lib/admin/types";
 import type {
   AccessSession,
   ComplaintRecord,
@@ -11,19 +20,10 @@ import type {
   DocumentUpload,
   Insight,
   KnowledgeDocument,
-  ServiceDraft,
   WorkItemStatus,
 } from "@/lib/clarity/types";
 
-/**
- * Write endpoints the workspace UI is built against but the API does not expose
- * yet. Flip these on once the backend routes ship — the UI reads them to decide
- * between a live action and an honest "not available yet" state.
- */
-export const SERVICE_WRITE_API = false;
-export const ORGANIZATION_SETTINGS_API = false;
-
-type RequestOptions = {
+export type RequestOptions = {
   method?: string;
   body?: BodyInit | null;
   json?: unknown;
@@ -32,7 +32,7 @@ type RequestOptions = {
   parse?: "json" | "void";
 };
 
-async function clarityRequest<T>(
+export async function clarityRequest<T>(
   path: string,
   { method = "GET", body, json, token, timeoutMs = 30_000, parse = "json" }: RequestOptions = {},
 ): Promise<T> {
@@ -247,52 +247,115 @@ export function listConversations(
   });
 }
 
-/* ------------------------------------------------ services (write gaps) -- */
+/* --------------------------------------------------------------- services -- */
 
-export class ApiNotAvailableError extends Error {
-  constructor(public endpoint: string) {
-    super("This endpoint is not available in the API yet.");
-    this.name = "ApiNotAvailableError";
-  }
+export function listAdminServices(token: string): Promise<AdminService[]> {
+  return clarityRequest<AdminService[]>("/api/v1/admin/services", { token });
 }
 
-export function saveService(
+export function createService(
   token: string,
-  draft: ServiceDraft,
-  serviceId?: string,
-): Promise<{ id: string }> {
-  if (!SERVICE_WRITE_API) {
-    return Promise.reject(
-      new ApiNotAvailableError(
-        serviceId
-          ? "PATCH /api/v1/admin/services/{id}"
-          : "POST /api/v1/admin/services",
-      ),
-    );
-  }
-  const path = serviceId
-    ? `/api/v1/admin/services/${encodeURIComponent(serviceId)}`
-    : "/api/v1/admin/services";
-  return clarityRequest<{ id: string }>(path, {
-    method: serviceId ? "PATCH" : "POST",
+  input: ServiceInput,
+): Promise<AdminService> {
+  return clarityRequest<AdminService>("/api/v1/admin/services", {
+    method: "POST",
     token,
-    json: draft,
+    json: input,
   });
 }
 
-export function saveOrganizationSettings(
+export function updateService(
+  token: string,
+  serviceId: string,
+  input: Partial<ServiceInput>,
+): Promise<AdminService> {
+  return clarityRequest<AdminService>(
+    `/api/v1/admin/services/${encodeURIComponent(serviceId)}`,
+    { method: "PATCH", token, json: input },
+  );
+}
+
+export function deleteService(token: string, serviceId: string): Promise<void> {
+  return clarityRequest<void>(
+    `/api/v1/admin/services/${encodeURIComponent(serviceId)}`,
+    { method: "DELETE", token, parse: "void" },
+  );
+}
+
+export function summarizeService(
+  token: string,
+  serviceId: string,
+): Promise<ServiceSummaryResult> {
+  return clarityRequest<ServiceSummaryResult>(
+    `/api/v1/admin/services/${encodeURIComponent(serviceId)}/summarize`,
+    { method: "POST", token, timeoutMs: 120_000 },
+  );
+}
+
+/* ------------------------------------------------------- updates & notices -- */
+
+export function listChangeLogs(
+  token: string,
+  status: ChangeLogStatus | "ALL" = "ALL",
+): Promise<ChangeLogRecord[]> {
+  return clarityRequest<ChangeLogRecord[]>(
+    `/api/v1/admin/change-logs?status=${status}`,
+    { token },
+  );
+}
+
+export function publishChangeLog(
+  token: string,
+  logId: string,
+  payload: { title?: string; public_notice?: string; effective_date?: string | null },
+): Promise<ChangeLogRecord> {
+  return clarityRequest<ChangeLogRecord>(
+    `/api/v1/admin/change-logs/${encodeURIComponent(logId)}/publish`,
+    { method: "POST", token, json: payload },
+  );
+}
+
+export function unpublishChangeLog(token: string, logId: string) {
+  return clarityRequest<ChangeLogRecord>(
+    `/api/v1/admin/change-logs/${encodeURIComponent(logId)}/unpublish`,
+    { method: "POST", token },
+  );
+}
+
+export function approveChangeLog(token: string, logId: string) {
+  return clarityRequest<{ message: string }>(
+    `/api/v1/admin/change-logs/${encodeURIComponent(logId)}/approve`,
+    { method: "POST", token },
+  );
+}
+
+export function rejectChangeLog(token: string, logId: string) {
+  return clarityRequest<{ message: string }>(
+    `/api/v1/admin/change-logs/${encodeURIComponent(logId)}/reject`,
+    { method: "POST", token },
+  );
+}
+
+export function createAnnouncement(
+  token: string,
+  input: AnnouncementInput,
+): Promise<ChangeLogRecord> {
+  return clarityRequest<ChangeLogRecord>("/api/v1/admin/announcements", {
+    method: "POST",
+    token,
+    json: input,
+  });
+}
+
+/* ---------------------------------------------------------------- settings -- */
+
+export function updateOrganizationSettings(
   token: string,
   slug: string,
-  payload: Record<string, unknown>,
-): Promise<unknown> {
-  if (!ORGANIZATION_SETTINGS_API) {
-    return Promise.reject(
-      new ApiNotAvailableError(`PATCH /api/v1/organizations/${slug}`),
-    );
-  }
-  return clarityRequest(`/api/v1/organizations/${encodeURIComponent(slug)}`, {
-    method: "PATCH",
-    token,
-    json: payload,
-  });
+  payload: OrganizationSettingsInput,
+): Promise<Organization> {
+  return clarityRequest<Organization>(
+    `/api/v1/organizations/${encodeURIComponent(slug)}`,
+    { method: "PATCH", token, json: payload },
+  );
 }

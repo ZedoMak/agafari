@@ -41,6 +41,19 @@ export type Service = {
   processing_time: string;
   verification_status: string;
   last_verified_at: string;
+  procedure_steps?: string[] | null;
+};
+
+export type OrganizationUpdate = {
+  id: string;
+  title: string;
+  summary: string;
+  service_id: string | null;
+  service_title: string | null;
+  service_slug: string | null;
+  published_at: string;
+  effective_date: string | null;
+  origin: "AI_DETECTED" | "MANUAL";
 };
 
 export type Citation = {

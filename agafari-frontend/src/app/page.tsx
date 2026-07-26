@@ -1,82 +1,59 @@
 import Link from "next/link";
-import { HeroStack } from "@/components/landing/hero-stack";
-import { ProductDemo } from "@/components/landing/product-demo";
-import { TemplatePreview } from "@/components/landing/template-preview";
+import { LiveSiteSwitcher } from "@/components/landing/live-site-switcher";
+import { SiteEmbed } from "@/components/landing/site-embed";
+import { TemplateCard } from "@/components/landing/template-card";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
-import { TEMPLATE_CATALOG } from "@/lib/templates-catalog";
+import { HOPE_AID_DEMO, PUBLISHED_DEMOS } from "@/lib/demo-sites";
+import { DESIGN_TEMPLATES, TEMPLATE_CATALOG } from "@/lib/templates-catalog";
 
 const steps = [
   {
     number: "01",
-    title: "Choose a template",
+    title: "Choose a style",
     description:
-      "Pick a professional starting point built for education, healthcare, government, NGOs, and more.",
+      "Six template directions, from calm public-service layouts to dark support consoles.",
   },
   {
     number: "02",
     title: "Customize branding",
     description:
-      "Add your logo, colors, fonts, and homepage content—no engineering sprint required.",
+      "Logo, colours, wording, and services — configured for your organization.",
   },
   {
     number: "03",
     title: "Upload documents",
     description:
-      "Connect your knowledge base. Approve what the AI can use publicly vs internally.",
+      "Mark knowledge PUBLIC for visitors or INTERNAL for staff. Approve what the AI may use.",
   },
   {
     number: "04",
-    title: "Launch your AI website",
+    title: "Launch your site",
     description:
-      "Go live with a public site, dashboard, and RAG assistant on a dedicated hosted site.",
+      "Your visitors use your hosted site. Your team runs it from the admin panel we host for you.",
   },
 ];
 
 const outcomes = [
   {
-    title: "Professional website",
-    description: "A beautiful, responsive public site for your services and programs.",
+    title: "Your public website",
+    description:
+      "A branded site where your visitors browse services and ask questions.",
   },
   {
-    title: "AI assistant",
-    description: "RAG-powered chat trained on the documents you approve.",
+    title: "Public RAG",
+    description:
+      "Answers grounded only in approved public documents, with citations attached.",
   },
   {
-    title: "Powerful dashboard",
-    description: "Manage services, documents, branding, and AI from one workspace.",
+    title: "Private RAG",
+    description:
+      "A staff assistant over internal knowledge that visitors can never reach.",
   },
   {
-    title: "Custom branding",
-    description: "Logo, colors, terminology, and layout that match your organization.",
+    title: "Admin panel",
+    description:
+      "Services, documents, policy updates, conversations, and complaints — managed on our domain, not yours.",
   },
-  {
-    title: "Knowledge base",
-    description: "Upload PDFs, guides, and policies—control public vs internal visibility.",
-  },
-  {
-    title: "Analytics",
-    description: "See questions, gaps, and engagement so your team knows what to improve.",
-  },
-];
-
-const customizeItems = [
-  "Change colors",
-  "Upload logo",
-  "Choose fonts",
-  "Edit homepage",
-  "Add pages",
-  "Configure AI assistant",
-  "Manage services",
-  "No coding required",
-];
-
-const trustOrgs = [
-  "Government Agencies",
-  "Universities",
-  "Hospitals",
-  "NGOs",
-  "Municipalities",
-  "Companies",
 ];
 
 export default function Home() {
@@ -87,30 +64,36 @@ export default function Home() {
         <section className="hero">
           <div className="container hero-grid">
             <div className="hero-copy reveal-up">
-              <span className="eyebrow">AI digital service websites</span>
+              <span className="eyebrow">AI service websites</span>
               <h1>
-                Launch your AI-powered organization website{" "}
-                <em>in minutes</em>
+                Your Organization Deserve&apos;s a better way to server your customers{" "}
+          
               </h1>
               <p>
-                Choose a professional template, customize branding, upload your
-                knowledge base, and go live with a public site, admin dashboard,
-                and RAG assistant—Shopify-simple for organizational websites.
+                Pick a template style, customize it for your brand, upload your
+                documents, and go live on your own hosted site — with a public
+                assistant, a private staff assistant, and a dashboard included.
               </p>
               <div className="hero-actions">
-                <Link href="/partner" className="button button-primary">
-                  Start building <span aria-hidden="true">→</span>
+                <Link href="/templates" className="button button-primary">
+                  Browse templates <span aria-hidden="true">→</span>
                 </Link>
-                <Link href="#templates" className="button button-secondary">
-                  View templates
+                <Link
+                  href={HOPE_AID_DEMO.siteHref}
+                  className="button button-secondary"
+                >
+                  Open a live site
                 </Link>
               </div>
               <div className="hero-note">
                 <span aria-hidden="true" />
-                Template · Dashboard · AI included
+                Live example below runs on mock data
               </div>
             </div>
-            <HeroStack />
+
+            <div className="hero-embed-wrap reveal-up delay-1">
+              <SiteEmbed site={HOPE_AID_DEMO} />
+            </div>
           </div>
         </section>
 
@@ -118,48 +101,65 @@ export default function Home() {
           <div className="container">
             <div className="section-head">
               <div>
-                <span className="eyebrow">Template showcase</span>
-                <h2>Pick a site. Make it yours.</h2>
+                <span className="eyebrow">Template gallery</span>
+                <h2>Choose your Template.</h2>
               </div>
               <p>
-                Browse professionally designed templates—then preview or start
-                building. This is the product.
+                Every style ships the same stack — public site, dual RAG,
+                dashboard. {PUBLISHED_DEMOS.length} are running as live sites
+                you can open; {DESIGN_TEMPLATES.length} are design previews you
+                can request.
               </p>
             </div>
-            <div className="template-showcase">
-              {TEMPLATE_CATALOG.map((template) => (
-                <article className="showcase-card" key={template.id} id={template.id}>
-                  <TemplatePreview template={template} />
-                  <div className="showcase-card-body">
-                    <div className="showcase-card-meta">
-                      <span className="sector-badge">{template.category}</span>
-                      {template.live ? (
-                        <span className="live-pill">Live demo</span>
-                      ) : null}
-                    </div>
-                    <h3>{template.name}</h3>
-                    <p>{template.description}</p>
-                    <div className="template-card-actions">
-                      <Link
-                        href={template.previewHref}
-                        className="button button-secondary button-small"
-                      >
-                        Preview
-                      </Link>
-                      <Link
-                        href={template.useHref}
-                        className="button button-primary button-small"
-                      >
-                        Use template
-                      </Link>
-                    </div>
-                  </div>
-                </article>
+            <div className="gallery-grid">
+              {TEMPLATE_CATALOG.map((item) => (
+                <TemplateCard item={item} key={item.id} />
               ))}
             </div>
             <p className="template-gallery-foot">
-              <Link href="/templates">Open full template gallery →</Link>
+              <Link href="/templates">Compare all templates →</Link>
             </p>
+          </div>
+        </section>
+
+        <section className="section" id="live-proof">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <span className="eyebrow">Live sites</span>
+                <h2>One template. Four organizations.</h2>
+              </div>
+              <p>
+                Switch between mock organizations to see how far branding,
+                wording, and content change. Everything you click happens on
+                their site — Agafari only provides it.
+              </p>
+            </div>
+
+            <LiveSiteSwitcher />
+          </div>
+        </section>
+
+        <section className="section section-soft" id="features">
+          <div className="container">
+            <div className="section-head">
+              <div>
+                <span className="eyebrow">What ships</span>
+                <h2>Website, dual RAG, dashboard</h2>
+              </div>
+              <p>
+                Whatever style you choose, this is what your organization
+                receives — with your data instead of mock content.
+              </p>
+            </div>
+            <div className="outcome-grid outcome-grid-four">
+              {outcomes.map((item) => (
+                <article className="outcome-card" key={item.title}>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -167,10 +167,10 @@ export default function Home() {
           <div className="container">
             <div className="centered-head">
               <span className="eyebrow">How it works</span>
-              <h2>From template to live AI website</h2>
+              <h2>From style to hosted site</h2>
               <p>
-                Four clear steps. No custom platform build. No separate AI
-                project.
+                Your visitors never need Agafari. They use the site we host for
+                you.
               </p>
             </div>
             <ol className="process-track">
@@ -190,152 +190,24 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="section section-soft" id="features">
-          <div className="container">
-            <div className="section-head">
-              <div>
-                <span className="eyebrow">What you get</span>
-                <h2>Outcomes, not checkbox features</h2>
-              </div>
-              <p>
-                Everything ships with your template so your organization can
-                publish services and answer questions with confidence.
-              </p>
-            </div>
-            <div className="outcome-grid">
-              {outcomes.map((item) => (
-                <article className="outcome-card" key={item.title}>
-                  <h3>{item.title}</h3>
-                  <p>{item.description}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="demo">
-          <div className="container">
-            <div className="section-head">
-              <div>
-                <span className="eyebrow">Interactive demo</span>
-                <h2>See the product, not a pitch deck</h2>
-              </div>
-              <p>
-                Switch between website, dashboard, AI, and templates. Hover and
-                click—this is what you launch.
-              </p>
-            </div>
-            <ProductDemo />
-          </div>
-        </section>
-
-        <section className="section section-soft" id="why">
-          <div className="container">
-            <div className="centered-head">
-              <span className="eyebrow">Why Agafari</span>
-              <h2>Stop rebuilding what should be a product</h2>
-            </div>
-            <div className="compare-grid">
-              <article className="compare-card compare-old">
-                <h3>Traditional development</h3>
-                <ul>
-                  <li>
-                    <span aria-hidden="true">✕</span> Months of build time
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✕</span> Expensive custom work
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✕</span> Developers required
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✕</span> AI bolted on separately
-                  </li>
-                </ul>
-              </article>
-              <article className="compare-card compare-new">
-                <h3>Agafari</h3>
-                <ul>
-                  <li>
-                    <span aria-hidden="true">✓</span> Minutes to start
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✓</span> Ready-made templates
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✓</span> AI included
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✓</span> Dashboard included
-                  </li>
-                  <li>
-                    <span aria-hidden="true">✓</span> Fully customizable
-                  </li>
-                </ul>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="customize">
-          <div className="container customize-layout">
-            <div>
-              <span className="eyebrow">Customization</span>
-              <h2>Your brand. Your knowledge. Your site.</h2>
-              <p>
-                Every generated site is yours to shape. Update look and feel,
-                structure pages, and configure the assistant—without writing
-                code.
-              </p>
-              <Link href="/partner" className="button button-primary">
-                Start building
-              </Link>
-            </div>
-            <ul className="customize-grid">
-              {customizeItems.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        <section className="section section-soft" id="trust">
-          <div className="container">
-            <div className="centered-head">
-              <span className="eyebrow">Built for organizations</span>
-              <h2>Trusted across sectors</h2>
-              <p>
-                Designed for teams that need clear public information and an AI
-                layer they control.
-              </p>
-            </div>
-            <div className="trust-logo-row" aria-label="Organization types">
-              {trustOrgs.map((org) => (
-                <div className="trust-logo" key={org}>
-                  {org}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="section" id="pricing">
+        <section className="section section-soft" id="pricing">
           <div className="container pricing-strip">
             <div>
               <span className="eyebrow">Pricing</span>
-              <h2>Start building. Subscribe when you launch.</h2>
+              <h2>Explore free. Subscribe when you launch.</h2>
               <p>
-                Explore templates and demos free. When you&apos;re ready, subscribe
-                to host your organization&apos;s AI website.
+                Browse styles and open the live example any time. When you start
+                building, you get your own hosted site with your branding and
+                documents.
               </p>
             </div>
             <div className="pricing-card">
               <strong>Organization plan</strong>
               <ul className="feature-list">
-                <li>Hosted public website</li>
+                <li>Hosted company website</li>
+                <li>Public + private RAG</li>
                 <li>Admin dashboard</li>
-                <li>RAG AI assistant</li>
-                <li>Template + branding controls</li>
+                <li>Template of your choice</li>
               </ul>
               <Link href="/partner" className="button button-primary">
                 Get started
@@ -350,14 +222,14 @@ export default function Home() {
               <div>
                 <h2>Create your AI website today</h2>
                 <p>
-                  Choose a template, customize it, and launch a digital service
-                  portal your organization can run.
+                  Choose a style, open the live example, then launch your own
+                  organization site.
                 </p>
                 <div className="cta-actions">
                   <Link href="/partner" className="button button-primary">
                     Start building
                   </Link>
-                  <Link href="#templates" className="button button-secondary">
+                  <Link href="/templates" className="button button-secondary">
                     Browse templates
                   </Link>
                 </div>

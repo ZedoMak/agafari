@@ -135,16 +135,3 @@ export type ConversationRecord = {
   updated_at: string;
   messages: ConversationMessage[];
 };
-
-/**
- * Draft shape for the services builder. The backend exposes read-only service
- * endpoints today, so this type describes the contract we expect once write
- * endpoints land — see SERVICE_WRITE_API in `client.ts`.
- */
-export type ServiceDraft = {
-  title: string;
-  category: string;
-  summary: string;
-  processing_time: string;
-  published: boolean;
-};
