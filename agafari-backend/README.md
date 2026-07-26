@@ -18,13 +18,21 @@ source .venv/bin/activate
 pip install -r requirements.txt
 alembic upgrade head
 python seed_saas_demo.py
+python seed_demo_sites.py
 uvicorn app.main:app --reload --port 8000
 ```
 
-Demo organization:
+Demo organizations (all synthetic, all on the same template):
 
-- Slug: `hope-aid`
-- Access code: `ngo-demo`
+| Slug | Organization | Sector | Access code |
+|------|--------------|--------|-------------|
+| `hope-aid` | Hope Aid Ethiopia | NGO | `ngo-demo` |
+| `metro-health` | Metro Health Clinic | Healthcare | `care-demo` |
+| `lumen-city` | Lumen City Services | Municipality | `civic-demo` |
+| `northbridge` | Northbridge University | Education | `campus-demo` |
+
+`seed_saas_demo.py` seeds Hope Aid; `seed_demo_sites.py` seeds the other three
+with different colors, terminology, and content. Both are idempotent.
 
 Important API groups:
 

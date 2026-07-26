@@ -38,6 +38,20 @@ async def load_service(
     return service
 
 
+async def load_catalogue(agency_id: str, db: AsyncSession) -> list[Service]:
+    """Published services, so the assistant can speak for the whole organization."""
+    result = await db.execute(
+        select(Service)
+        .where(Service.agency_id == agency_id)
+        .order_by(Service.title)
+    )
+    return [
+        service
+        for service in result.scalars().all()
+        if getattr(service, "is_published", True)
+    ]
+
+
 async def get_or_create_conversation(
     payload: SaaSChatRequest,
     agency_id: str,
@@ -108,6 +122,7 @@ async def run_logged_chat(
 
     started = perf_counter()
     try:
+        catalogue = await load_catalogue(organization.id, db)
         async with db.begin_nested():
             answer = await generate_answer(
                 service=service,
@@ -116,6 +131,7 @@ async def run_logged_chat(
                 db=db,
                 scope=scope,
                 history=history,
+                catalogue=catalogue,
             )
     except Exception:
         answer = {
@@ -179,6 +195,41 @@ async def public_chat(
     return await run_logged_chat(
         payload=payload,
         organization=service.agency,
+        service=service,
+        scope="PUBLIC",
+        db=db,
+    )
+
+
+@router.post(
+    "/api/v1/public/organizations/{slug}/chat",
+    response_model=SaaSChatResponse,
+)
+async def public_organization_chat(
+    slug: str,
+    payload: SaaSChatRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Answer a visitor's question about the organization as a whole.
+
+    Visitors do not know which service holds their answer, so the assistant
+    reads across everything the organization has published. A service_id may
+    still be supplied to keep a page's context in focus.
+    """
+    result = await db.execute(
+        select(Agency).where(Agency.slug == slug, Agency.is_active.is_(True))
+    )
+    organization = result.scalar_one_or_none()
+    if organization is None:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    service = None
+    if payload.service_id:
+        service = await load_service(payload.service_id, db, organization.id)
+
+    return await run_logged_chat(
+        payload=payload,
+        organization=organization,
         service=service,
         scope="PUBLIC",
         db=db,

@@ -3,6 +3,11 @@ from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
+HEX_COLOR = r"^#[0-9a-fA-F]{6}$"
+DEFAULT_ANTI_BROKER_NOTICE = (
+    "This service is handled directly by our office. Do not pay an intermediary."
+)
+
 
 class OrganizationTheme(BaseModel):
     primary: str
@@ -122,3 +127,120 @@ class DocumentStatusResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class RequirementInput(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: Optional[str] = None
+    is_mandatory: bool = True
+
+
+class AdminRequirementSchema(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    is_mandatory: bool
+    order_index: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AdminServiceSchema(BaseModel):
+    id: str
+    title: str
+    slug: str
+    category: str
+    summary: str
+    processing_time: str
+    fee_etb: float
+    is_published: bool
+    verification_status: str
+    last_verified_at: Optional[datetime] = None
+    procedure_steps: Optional[List[str]] = None
+    requirements: List[AdminRequirementSchema]
+    document_count: int
+
+
+class AdminServiceCreate(BaseModel):
+    title: str = Field(min_length=2, max_length=200)
+    category: str = Field(min_length=1, max_length=50)
+    summary: str = Field(min_length=1)
+    processing_time: str = Field(min_length=1, max_length=100)
+    fee_etb: float = Field(default=0, ge=0)
+    anti_broker_notice: str = DEFAULT_ANTI_BROKER_NOTICE
+    is_published: bool = True
+    procedure_steps: Optional[List[str]] = None
+    requirements: Optional[List[RequirementInput]] = None
+
+
+class AdminServiceUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    category: Optional[str] = Field(default=None, min_length=1, max_length=50)
+    summary: Optional[str] = Field(default=None, min_length=1)
+    processing_time: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    fee_etb: Optional[float] = Field(default=None, ge=0)
+    anti_broker_notice: Optional[str] = None
+    is_published: Optional[bool] = None
+    procedure_steps: Optional[List[str]] = None
+    requirements: Optional[List[RequirementInput]] = None
+
+
+class ServiceSummaryResponse(BaseModel):
+    summary: str
+    procedure_steps: List[str]
+    generated_by: Literal["llm", "extractive"]
+
+
+class OrganizationTerminologyUpdate(BaseModel):
+    service_singular: Optional[str] = Field(default=None, min_length=1, max_length=60)
+    service_plural: Optional[str] = Field(default=None, min_length=1, max_length=60)
+
+
+class OrganizationFeaturesUpdate(BaseModel):
+    public_chat: Optional[bool] = None
+    complaints: Optional[bool] = None
+    employee_assistant: Optional[bool] = None
+    insights: Optional[bool] = None
+
+
+class OrganizationContactUpdate(BaseModel):
+    email: Optional[str] = Field(default=None, max_length=320)
+    phone: Optional[str] = Field(default=None, max_length=40)
+    website: Optional[str] = Field(default=None, max_length=255)
+
+
+class OrganizationSettingsUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=2, max_length=150)
+    description: Optional[str] = None
+    logo_url: Optional[str] = None
+    primary_color: Optional[str] = Field(default=None, pattern=HEX_COLOR)
+    accent_color: Optional[str] = Field(default=None, pattern=HEX_COLOR)
+    terminology: Optional[OrganizationTerminologyUpdate] = None
+    features: Optional[OrganizationFeaturesUpdate] = None
+    contact: Optional[OrganizationContactUpdate] = None
+
+
+class ChangeLogPublishRequest(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=200)
+    public_notice: Optional[str] = None
+    effective_date: Optional[datetime] = None
+
+
+class AnnouncementCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    public_notice: str = Field(min_length=1)
+    service_id: Optional[str] = None
+    effective_date: Optional[datetime] = None
+    publish: bool = True
+
+
+class OrganizationUpdateItem(BaseModel):
+    id: str
+    title: str
+    summary: str
+    service_id: Optional[str] = None
+    service_title: Optional[str] = None
+    service_slug: Optional[str] = None
+    published_at: datetime
+    effective_date: Optional[datetime] = None
+    origin: str

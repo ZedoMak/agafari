@@ -138,23 +138,29 @@ async def seed_demo() -> None:
             )
         )
         if internal_result.scalar_one_or_none() is None:
-            db.add(
-                Source(
-                    id=str(uuid.uuid4()),
-                    agency_id=organization.id,
-                    source_type="INTERNAL_SOP",
-                    title="Field Travel Approval SOP",
-                    raw_text_content=(
-                        "Employees submit a travel request to their line manager at least "
-                        "five working days before departure. The Operations Manager confirms "
-                        "the security and vehicle plan. Finance approves the budget only after "
-                        "both approvals are recorded. Emergency travel requires Country "
-                        "Director approval and written justification."
-                    ),
-                    visibility="INTERNAL",
-                    approval_status="APPROVED",
-                    processing_status="PENDING",
-                    department="Operations",
+            internal_source = Source(
+                id=str(uuid.uuid4()),
+                agency_id=organization.id,
+                source_type="INTERNAL_SOP",
+                title="Field Travel Approval SOP",
+                raw_text_content=(
+                    "Employees submit a travel request to their line manager at least "
+                    "five working days before departure. The Operations Manager confirms "
+                    "the security and vehicle plan. Finance approves the budget only after "
+                    "both approvals are recorded. Emergency travel requires Country "
+                    "Director approval and written justification."
+                ),
+                visibility="INTERNAL",
+                approval_status="APPROVED",
+                processing_status="PENDING",
+                department="Operations",
+            )
+            db.add(internal_source)
+            await db.flush()
+            await db.execute(
+                insert(service_sources).values(
+                    service_id=service.id,
+                    source_id=internal_source.id,
                 )
             )
 

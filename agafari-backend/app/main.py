@@ -1,12 +1,16 @@
+import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.ai import embedding as embed_client
+from app.ai import llm
 from app.database.session import init_db, async_session
 from app.config.settings import settings
 import app.models
 from app.routers import (
     access,
     admin,
+    admin_services,
     agencies,
     chat,
     complaints,
@@ -20,23 +24,37 @@ from app.routers import (
 )
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Startup: create tables + pgvector extension, index un-indexed sources."""
-    await init_db()
-    print("✅ Database initialized (pgvector enabled, tables created)")
-
-    # Index any sources that haven't been chunked yet
+async def _index_pending_sources() -> None:
+    """Index approved sources that have no embeddings yet."""
     try:
         from app.ai.indexer import index_all_sources
+
         async with async_session() as db:
             count = await index_all_sources(db)
             if count > 0:
                 print(f"✅ Indexed {count} new chunks into vector store")
-    except Exception as e:
-        print(f"⚠️  Auto-indexing skipped: {e}")
+    except Exception as exc:
+        print(f"⚠️  Auto-indexing skipped: {exc}")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup: create tables + pgvector extension, then index in the background."""
+    await init_db()
+    print("✅ Database initialized (pgvector enabled, tables created)")
+
+    # Indexing calls an external embedding provider, so it must never block the
+    # API from accepting requests.
+    background: set[asyncio.Task] = set()
+    if settings.INDEX_ON_STARTUP:
+        task = asyncio.create_task(_index_pending_sources())
+        background.add(task)
+        task.add_done_callback(background.discard)
 
     yield
+
+    for task in list(background):
+        task.cancel()
     print("Shutting down Agafari API")
 
 
@@ -54,6 +72,8 @@ app.add_middleware(
         for origin in settings.CORS_ORIGINS.split(",")
         if origin.strip()
     ],
+    # Tenant sites run on their own subdomains, which cannot be enumerated.
+    allow_origin_regex=settings.CORS_ORIGIN_REGEX or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -71,9 +91,18 @@ app.include_router(chat.router)
 app.include_router(saas_chat.router)
 app.include_router(complaints.router)
 app.include_router(admin.router)
+app.include_router(admin_services.router)
 app.include_router(dashboard.router)
 
 
 @app.get("/")
 async def health_check():
-    return {"status": "online", "app": "አጋፋሪ (Agafari) Backend"}
+    return {
+        "status": "online",
+        "app": "አጋፋሪ (Agafari) Backend",
+        "ai": {
+            "llm": llm.is_configured(),
+            "embeddings": embed_client.is_configured(),
+            "extractive_fallback": settings.AI_EXTRACTIVE_FALLBACK,
+        },
+    }

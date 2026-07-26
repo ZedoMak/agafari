@@ -1,5 +1,6 @@
 import hashlib
 import io
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -8,12 +9,16 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.ai.change_detector import detect_changes
 from app.ai.indexer import delete_source_chunks, index_source
 from app.config.settings import settings
 from app.database.session import get_db
-from app.models import AccessSession, AuditEvent, Service, Source
+from app.models import AccessSession, AuditEvent, ChangeLog, Service, Source
+from app.models.service import service_sources
 from app.schemas.saas import DocumentCreate, DocumentStatusResponse
 from app.security import require_access_session
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1/admin/documents", tags=["Knowledge Documents"])
 
@@ -136,6 +141,52 @@ async def list_documents(
     return result.scalars().all()
 
 
+async def record_detected_changes(source: Source, db: AsyncSession) -> bool:
+    """Compare a freshly approved public document against the service it backs.
+
+    Best effort by design: a model outage or a bad response must never undo an
+    approval, so every failure is swallowed after logging.
+    """
+    if source.visibility != "PUBLIC" or not source.raw_text_content:
+        return False
+    try:
+        result = await db.execute(
+            select(Service)
+            .options(selectinload(Service.requirements))
+            .join(service_sources, service_sources.c.service_id == Service.id)
+            .where(
+                service_sources.c.source_id == source.id,
+                Service.agency_id == source.agency_id,
+            )
+        )
+        detected = False
+        for service in result.scalars().unique().all():
+            analysis = await detect_changes(source.raw_text_content, service)
+            if not analysis["changes_detected"]:
+                continue
+            db.add(
+                ChangeLog(
+                    id=str(uuid.uuid4()),
+                    agency_id=source.agency_id,
+                    service_id=service.id,
+                    title=f"Update to {service.title}",
+                    source_title=source.title,
+                    old_data_snapshot=analysis["old_snapshot"],
+                    new_data_snapshot=analysis["new_snapshot"],
+                    ai_change_summary=analysis["ai_change_summary"],
+                    public_notice=analysis["public_notice"] or None,
+                    origin="AI_DETECTED",
+                    status="PENDING",
+                )
+            )
+            service.verification_status = "NEEDS_REVIEW"
+            detected = True
+        return detected
+    except Exception as exc:
+        logger.warning("Change detection after approval failed: %s", exc)
+        return False
+
+
 @router.post("/{document_id}/approve")
 async def approve_document(
     document_id: str,
@@ -159,13 +210,14 @@ async def approve_document(
         source.processing_status = "FAILED"
         await db.commit()
         raise HTTPException(status_code=502, detail="Document indexing failed") from exc
+    changes_detected = await record_detected_changes(source, db)
     db.add(
         AuditEvent(
             agency_id=session.agency_id,
             event_type="DOCUMENT_APPROVED",
             target_type="source",
             target_id=source.id,
-            details={"chunk_count": chunk_count},
+            details={"chunk_count": chunk_count, "changes_detected": changes_detected},
         )
     )
     await db.commit()
@@ -174,6 +226,7 @@ async def approve_document(
         "approval_status": source.approval_status,
         "processing_status": source.processing_status,
         "chunk_count": chunk_count,
+        "changes_detected": changes_detected,
     }
 
 

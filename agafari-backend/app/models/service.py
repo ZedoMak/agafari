@@ -2,7 +2,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import List, Optional, Dict, Any, TYPE_CHECKING
-from sqlalchemy import String, Text, Numeric, Boolean, DateTime, ForeignKey, Table, JSON, Float, Column, Integer
+from sqlalchemy import String, Text, Numeric, Boolean, DateTime, ForeignKey, Table, JSON, Float, Column, Integer, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.session import Base
 
@@ -38,11 +38,13 @@ class Service(Base):
     fee_etb: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)
     payment_channels: Mapped[Optional[Dict[str, Any]]] = mapped_column(JSON, default={"telebirr": True, "cbe_birr": True, "cash": False})
     anti_broker_notice: Mapped[str] = mapped_column(Text, nullable=False)
+    is_published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=true())
+    procedure_steps: Mapped[Optional[List[str]]] = mapped_column(JSON, nullable=True)
     verification_status: Mapped[str] = mapped_column(String(20), default="VERIFIED")
     last_verified_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     agency: Mapped[Agency] = relationship("Agency", back_populates="services")
-    requirements: Mapped[List[Requirement]] = relationship("Requirement", back_populates="service", cascade="all, delete")
+    requirements: Mapped[List[Requirement]] = relationship("Requirement", back_populates="service", cascade="all, delete-orphan")
     sources: Mapped[List[Source]] = relationship("Source", secondary=service_sources, backref="services")
     offices: Mapped[List[Office]] = relationship("Office", secondary=service_offices, back_populates="services")
 

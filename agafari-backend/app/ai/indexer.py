@@ -41,9 +41,16 @@ async def index_source(source_id: str, db: AsyncSession) -> int:
     if not chunks:
         return 0
 
-    # 5. Embed all chunks in a batch
+    # 5. Embed all chunks in a batch. Without a provider we still store the
+    # text so keyword retrieval keeps working.
     texts = [c.content for c in chunks]
-    embeddings = await embed_client.embed_texts(texts)
+    try:
+        embeddings = await embed_client.embed_texts(texts)
+        processing_status = "READY"
+    except embed_client.EmbeddingUnavailable as exc:
+        print(f"⚠️  Embeddings unavailable for source {source_id}: {exc}")
+        embeddings = [None] * len(chunks)
+        processing_status = "READY_TEXT_ONLY"
 
     # 6. Create Chunk records
     chunk_metadata = {
@@ -71,19 +78,23 @@ async def index_source(source_id: str, db: AsyncSession) -> int:
         ))
 
     db.add_all(chunk_models)
-    source.processing_status = "READY"
+    source.processing_status = processing_status
     await db.flush()
 
     return len(chunk_models)
 
 
-async def index_all_sources(db: AsyncSession) -> int:
-    """Index all Source records that haven't been chunked yet.
+async def index_all_sources(db: AsyncSession, force: bool = False) -> int:
+    """Index approved sources.
+
+    Args:
+        force: Re-index sources that already have chunks. Use after changing
+            the embedding model, or to upgrade text-only chunks once an
+            embedding provider becomes available.
 
     Returns:
         Total number of chunks created.
     """
-    # Find sources that have raw_text_content but no chunks
     result = await db.execute(
         select(Source.id).where(
             Source.raw_text_content.isnot(None),
@@ -94,12 +105,14 @@ async def index_all_sources(db: AsyncSession) -> int:
 
     total_chunks = 0
     for sid in source_ids:
-        # Check if already indexed
-        existing = await db.execute(
-            select(Chunk.id).where(Chunk.source_id == sid).limit(1)
-        )
-        if existing.first() is not None:
-            continue
+        if not force:
+            existing = await db.execute(
+                select(Chunk.id)
+                .where(Chunk.source_id == sid, Chunk.embedding.isnot(None))
+                .limit(1)
+            )
+            if existing.first() is not None:
+                continue
 
         count = await index_source(sid, db)
         total_chunks += count

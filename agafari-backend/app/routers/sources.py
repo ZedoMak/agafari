@@ -75,34 +75,28 @@ async def ingest_new_source(
                 )
                 ai_summary = change_result["ai_change_summary"]
 
-                # Create a ChangeLog with real AI analysis
-                change_log = ChangeLog(
-                    id=str(uuid.uuid4()),
-                    service_id=service.id,
-                    source_title=payload.title,
-                    old_data_snapshot=change_result["old_snapshot"],
-                    new_data_snapshot=change_result["new_snapshot"],
-                    ai_change_summary=ai_summary,
-                    status="PENDING"
-                )
-                db.add(change_log)
+                if change_result["changes_detected"]:
+                    change_log = ChangeLog(
+                        id=str(uuid.uuid4()),
+                        agency_id=session.agency_id,
+                        service_id=service.id,
+                        title=f"Update to {service.title}",
+                        source_title=payload.title,
+                        old_data_snapshot=change_result["old_snapshot"],
+                        new_data_snapshot=change_result["new_snapshot"],
+                        ai_change_summary=ai_summary,
+                        public_notice=change_result["public_notice"] or None,
+                        origin="AI_DETECTED",
+                        status="PENDING",
+                    )
+                    db.add(change_log)
 
-                # Flag service for review
-                service.verification_status = "NEEDS_REVIEW"
+                    # Flag service for review
+                    service.verification_status = "NEEDS_REVIEW"
 
             except Exception as e:
                 # Graceful degradation — still save the source even if AI fails
                 ai_summary = f"Source ingested but AI analysis failed: {str(e)}"
-                change_log = ChangeLog(
-                    id=str(uuid.uuid4()),
-                    service_id=service.id,
-                    source_title=payload.title,
-                    old_data_snapshot={"fee_etb": float(service.fee_etb)},
-                    new_data_snapshot={"raw_text": payload.raw_text_content[:500]},
-                    ai_change_summary=ai_summary,
-                    status="PENDING"
-                )
-                db.add(change_log)
 
     await db.commit()
     return {

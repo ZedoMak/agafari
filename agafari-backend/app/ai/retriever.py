@@ -8,9 +8,14 @@ from app.ai.reranker import ScoredChunk
 # Reciprocal Rank Fusion constant (standard value from the RRF paper)
 RRF_K = 60
 
+# A question asked on a service page is usually about that service, but the
+# answer often lives in an organization-wide document. Retrieval therefore
+# covers the whole organization and merely prefers the current service.
+SERVICE_BOOST = 1.6
+
 
 async def hybrid_search(
-    query_embedding: list[float],
+    query_embedding: list[float] | None,
     query_text: str,
     agency_id: str,
     service_id: str | None,
@@ -22,10 +27,12 @@ async def hybrid_search(
     """Run vector + keyword search in parallel and merge via RRF.
 
     Args:
-        query_embedding: The embedded user query vector.
+        query_embedding: The embedded user query, or None to search lexically
+            only (used when the embedding provider is unavailable).
         query_text: The raw user query string (for keyword matching).
         agency_id: Hard tenant boundary for all retrieval.
-        service_id: Optional service/program filter.
+        service_id: Service currently in focus. Not a filter — its chunks are
+            ranked higher so the whole organization stays answerable.
         scope: PUBLIC retrieves public chunks; INTERNAL retrieves both tiers.
         db: Async database session.
         limit: Max results to return.
@@ -36,35 +43,36 @@ async def hybrid_search(
     """
     fetch_limit = limit * 2  # Over-fetch for better fusion
 
-    # 1. Vector search (pgvector cosine distance)
-    vector_sql = text("""
-        SELECT id, content, metadata_,
-               1 - (embedding <=> CAST(:query_vec AS vector)) AS score
-        FROM chunks
-        WHERE agency_id = :agency_id
-          AND (
-            CAST(:sid AS varchar) IS NULL
-            OR service_id = CAST(:sid AS varchar)
-          )
-          AND approval_status = 'APPROVED'
-          AND (
-            (:scope = 'PUBLIC' AND visibility = 'PUBLIC')
-            OR (:scope = 'INTERNAL' AND visibility IN ('PUBLIC', 'INTERNAL'))
-          )
-        ORDER BY embedding <=> CAST(:query_vec AS vector)
-        LIMIT :lim
-    """)
-    vector_result = await db.execute(
-        vector_sql,
-        {
-            "query_vec": str(query_embedding),
-            "agency_id": agency_id,
-            "sid": service_id,
-            "scope": scope,
-            "lim": fetch_limit,
-        },
-    )
-    vector_rows = vector_result.fetchall()
+    # 1. Vector search (pgvector cosine distance). Chunks indexed without
+    # embeddings are still reachable through the keyword pass below.
+    vector_rows = []
+    if query_embedding is not None:
+        vector_sql = text("""
+            SELECT id, content, metadata_, service_id,
+                   1 - (embedding <=> CAST(:query_vec AS vector)) AS score
+            FROM chunks
+            WHERE agency_id = :agency_id
+              AND embedding IS NOT NULL
+              AND approval_status = 'APPROVED'
+              AND (
+                (:scope = 'PUBLIC' AND visibility = 'PUBLIC')
+                OR (:scope = 'INTERNAL' AND visibility IN ('PUBLIC', 'INTERNAL'))
+              )
+            ORDER BY embedding <=> CAST(:query_vec AS vector)
+            LIMIT :lim
+        """)
+        vector_result = await db.execute(
+            vector_sql,
+            {
+                "query_vec": str(query_embedding),
+                "agency_id": agency_id,
+                "scope": scope,
+                "lim": fetch_limit,
+            },
+        )
+        vector_rows = vector_result.fetchall()
+    else:
+        vector_weight = 0.0
 
     # 2. Keyword search (ILIKE for simplicity, works well for hackathon)
     # Split query into terms and search for any match
@@ -74,13 +82,9 @@ async def hybrid_search(
         # Build OR conditions for each term
         conditions = " OR ".join([f"content ILIKE :term{i}" for i in range(len(search_terms))])
         keyword_sql = text(f"""
-            SELECT id, content, metadata_, 1.0 AS score
+            SELECT id, content, metadata_, service_id, 1.0 AS score
             FROM chunks
             WHERE agency_id = :agency_id
-              AND (
-                CAST(:sid AS varchar) IS NULL
-                OR service_id = CAST(:sid AS varchar)
-              )
               AND approval_status = 'APPROVED'
               AND (
                 (:scope = 'PUBLIC' AND visibility = 'PUBLIC')
@@ -91,7 +95,6 @@ async def hybrid_search(
         """)
         params = {
             "agency_id": agency_id,
-            "sid": service_id,
             "scope": scope,
             "lim": fetch_limit,
         }
@@ -101,13 +104,19 @@ async def hybrid_search(
         keyword_result = await db.execute(keyword_sql, params)
         keyword_rows = keyword_result.fetchall()
 
-    # 3. Reciprocal Rank Fusion
+    # 3. Reciprocal Rank Fusion, preferring the service in focus
     scores: dict[str, float] = {}
     chunks_map: dict[str, ScoredChunk] = {}
 
+    def boost(row) -> float:
+        if service_id is None:
+            return 1.0
+        return SERVICE_BOOST if row.service_id == service_id else 1.0
+
     for rank, row in enumerate(vector_rows):
         chunk_id = row.id
-        scores[chunk_id] = scores.get(chunk_id, 0.0) + vector_weight / (RRF_K + rank + 1)
+        contribution = vector_weight / (RRF_K + rank + 1) * boost(row)
+        scores[chunk_id] = scores.get(chunk_id, 0.0) + contribution
         if chunk_id not in chunks_map:
             chunks_map[chunk_id] = ScoredChunk(
                 chunk_id=chunk_id,
@@ -119,7 +128,8 @@ async def hybrid_search(
     keyword_weight = 1.0 - vector_weight
     for rank, row in enumerate(keyword_rows):
         chunk_id = row.id
-        scores[chunk_id] = scores.get(chunk_id, 0.0) + keyword_weight / (RRF_K + rank + 1)
+        contribution = keyword_weight / (RRF_K + rank + 1) * boost(row)
+        scores[chunk_id] = scores.get(chunk_id, 0.0) + contribution
         if chunk_id not in chunks_map:
             chunks_map[chunk_id] = ScoredChunk(
                 chunk_id=chunk_id,

@@ -2,11 +2,36 @@
 
 Compares a new source directive against existing service data
 and generates a structured analysis of what changed.
+
+A provider outage or a malformed model response is reported as "no changes
+detected" rather than raised, so ingesting a document never fails because of it.
 """
 
 import json
+import logging
+
 from app.ai import llm
 from app.ai.prompts import CHANGE_DETECTION_PROMPT
+
+logger = logging.getLogger(__name__)
+
+
+def _no_changes(service, reason: str) -> dict:
+    return {
+        "changes_detected": False,
+        "ai_change_summary": reason,
+        "public_notice": "",
+        "old_snapshot": _old_snapshot(service),
+        "new_snapshot": {},
+    }
+
+
+def _old_snapshot(service) -> dict:
+    try:
+        fee = float(service.fee_etb or 0)
+    except (TypeError, ValueError):
+        fee = 0.0
+    return {"fee_etb": fee, "current_summary": (service.ai_summary or "")[:200]}
 
 
 async def detect_changes(
@@ -20,7 +45,8 @@ async def detect_changes(
         service: The SQLAlchemy Service object with loaded relationships.
 
     Returns:
-        Dict with keys: summary, old_snapshot, new_snapshot
+        Dict with keys: changes_detected, ai_change_summary, public_notice,
+        old_snapshot, new_snapshot.
     """
     # Build current service data string
     current_data_parts = [
@@ -48,10 +74,12 @@ async def detect_changes(
         {"role": "user", "content": prompt_text},
     ]
 
-    # Call Addis AI
-    response_text = await llm.chat_completion(messages, temperature=0.1)
+    try:
+        response_text = await llm.chat_completion(messages, temperature=0.1)
+    except llm.LLMUnavailable as exc:
+        logger.warning("Change detection skipped, model unavailable: %s", exc)
+        return _no_changes(service, "Automatic change detection is unavailable right now.")
 
-    # Parse the JSON response
     try:
         # Strip markdown code fences if present
         cleaned = response_text.strip()
@@ -59,15 +87,16 @@ async def detect_changes(
             cleaned = cleaned.split("\n", 1)[1]
             cleaned = cleaned.rsplit("```", 1)[0]
         analysis = json.loads(cleaned)
-    except (json.JSONDecodeError, IndexError):
-        analysis = {
-            "summary": response_text[:500],
-            "changes_detected": True,
-            "details": response_text,
-        }
+        if not isinstance(analysis, dict):
+            raise json.JSONDecodeError("Expected a JSON object", cleaned, 0)
+    except (json.JSONDecodeError, IndexError, ValueError) as exc:
+        logger.warning("Change detection returned unreadable JSON: %s", exc)
+        return _no_changes(service, "Automatic change detection returned an unreadable result.")
 
     return {
+        "changes_detected": bool(analysis.get("changes_detected", True)),
         "ai_change_summary": analysis.get("summary", "AI detected potential changes — review required."),
-        "old_snapshot": {"fee_etb": float(service.fee_etb), "current_summary": service.ai_summary[:200]},
+        "public_notice": (analysis.get("public_notice") or "").strip(),
+        "old_snapshot": _old_snapshot(service),
         "new_snapshot": analysis,
     }
